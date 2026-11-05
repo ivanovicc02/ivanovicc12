@@ -168,6 +168,7 @@
 
   function renderCaptions(t) {
     const el = document.getElementById('captions');
+    if (P && P.brand && P.brand.subtitulos_y) el.style.top = P.brand.subtitulos_y + 'px';
     if (!P || !P.words || !P.words.length) { el.innerHTML = ''; return; }
     const words = P.words;
     let ci = -1;
@@ -250,7 +251,7 @@
     const tEnd = words.length ? words[words.length - 1].end + 0.35 : P.duration - b.cierre;
     let html = '';
     if (b.marca_agua && t < tEnd) {
-      html += `<div style="position:absolute;left:36px;top:1330px;display:flex;align-items:center;gap:14px;opacity:.9;background:rgba(15,10,30,.55);padding:8px 26px 8px 8px;border-radius:50px">
+      html += `<div style="position:absolute;left:36px;top:${b.marca_agua_y || 1330}px;display:flex;align-items:center;gap:14px;opacity:.9;background:rgba(15,10,30,.55);padding:8px 26px 8px 8px;border-radius:50px">
         <img src="${b.logoUrl}" style="width:62px;height:62px;border-radius:50%;border:3px solid #fff;box-shadow:0 4px 14px rgba(0,0,0,.4)">
         <span style="color:#fff;font-weight:800;font-size:36px;text-shadow:0 2px 8px rgba(0,0,0,.7)">${esc(b.handle)}</span></div>`;
     }

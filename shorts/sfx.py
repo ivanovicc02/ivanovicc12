@@ -142,10 +142,68 @@ def tick():
     return _norm(np.sin(2 * np.pi * 2200 * t) * np.exp(-t * 160), 0.4)
 
 
+def squelch():
+    """succión de barro / arena mojada"""
+    d = 0.7
+    t = _t(d)
+    body = _lp(_noise(d), 600) * np.exp(-t * 5) * np.minimum(1, t * 40)
+    f = 180 - 120 * (t / d)
+    pop = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-((t - 0.45) ** 2) / 0.004)
+    return _norm(body + 0.8 * pop + bubbles(d) * 0.3, 0.8)
+
+
+def waves(d=6.0):
+    t = _t(d)
+    n = _lp(_noise(d), 900, 2)
+    env = 0.35 + 0.65 * (0.5 + 0.5 * np.sin(2 * np.pi * t / 3.2 - 1.5)) ** 2
+    return _norm(n * env, 0.6)
+
+
+def heartbeat(d=1.6):
+    t = _t(d)
+    s = np.zeros_like(t)
+    for st, a in [(0.0, 1), (0.22, 0.7), (0.8, 1), (1.02, 0.7)]:
+        i = int(st * SR)
+        tt = t[: len(t) - i]
+        s[i:] += a * np.sin(2 * np.pi * 52 * tt) * np.exp(-tt * 22)
+    return _norm(_lp(s, 200), 0.9)
+
+
+def projector(d=2.5):
+    t = _t(d)
+    clicks = (np.sin(2 * np.pi * 24 * t) > 0.92).astype(float)
+    s = _hp(_noise(d), 1500) * clicks * 0.8 + _lp(_noise(d), 300) * 0.25
+    return _norm(s, 0.5)
+
+
+def drip():
+    t = _t(0.25)
+    f = 900 + 1400 * (t / 0.25)
+    return _norm(np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t * 30), 0.5)
+
+
+def swoosh():
+    return whoosh(0.32)
+
+
+def rumble(d=2.0):
+    t = _t(d)
+    s = _lp(_noise(d), 120, 4) * np.sin(np.pi * np.clip(t / d, 0, 1))
+    return _norm(s + 0.4 * np.sin(2 * np.pi * 38 * t) * np.sin(np.pi * t / d), 0.9)
+
+
+def step():
+    t = _t(0.18)
+    return _norm(_lp(_noise(0.18), 900) * np.exp(-t * 35) + 0.5 * np.sin(2 * np.pi * 80 * t) * np.exp(-t * 30), 0.6)
+
+
 SOUNDS = {"whoosh": whoosh, "pop": pop, "ding": ding, "buzz": buzz, "splash": splash, "glass": glass,
-          "hit": hit, "boom": boom, "bubbles": bubbles, "riser": riser, "tick": tick}
+          "hit": hit, "boom": boom, "bubbles": bubbles, "riser": riser, "tick": tick,
+          "squelch": squelch, "waves": waves, "heartbeat": heartbeat, "projector": projector, "drip": drip,
+          "swoosh": swoosh, "rumble": rumble, "step": step}
 GAIN = {"whoosh": 0.35, "pop": 0.32, "ding": 0.4, "buzz": 0.35, "splash": 0.6, "glass": 0.5, "hit": 0.55,
-        "boom": 0.6, "bubbles": 0.35, "riser": 0.35, "tick": 0.3}
+        "boom": 0.6, "bubbles": 0.35, "riser": 0.35, "tick": 0.3, "squelch": 0.6, "waves": 0.35,
+        "heartbeat": 0.7, "projector": 0.3, "drip": 0.35, "swoosh": 0.3, "rumble": 0.6, "step": 0.4}
 
 
 def music_bed(d, mood="tension"):
@@ -207,6 +265,8 @@ def mezclar(voz, dur, eventos, submarino, inicios, salida, musica=True, vol_musi
         put("whoosh", t - 0.25, 1)
     for e in eventos:
         put(e["name"], e["t"], e.get("vol", 1))
+        if e["name"] in ("pop", "ding", "buzz"):
+            put("swoosh", e["t"] - 0.12, 0.6)
     # ambiente submarino
     if submarino:
         amb = underwater(min(dur, 30)) * 0.25
