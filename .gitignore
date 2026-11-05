@@ -1,0 +1,7 @@
+__pycache__/
+node_modules/
+shorts/proyectos/*/data.json
+shorts/proyectos/*/preview/
+shorts/proyectos/*/_mezcla.m4a
+shorts/proyectos/*/*.mp4
+shorts/proyectos/*/audio.*

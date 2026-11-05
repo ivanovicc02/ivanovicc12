@@ -1,0 +1,63 @@
+# Shorts animados estilo "curiosidades de supervivencia"
+
+Generador de vídeos verticales (1080x1920, 30 fps) con ilustración 2D, cámara con zoom,
+partículas y subtítulos palabra a palabra con resaltado, al estilo de @pingucuriosso.
+
+- Análisis del nicho y lista de temas: [`analisis/analisis_pingucuriosso.md`](analisis/analisis_pingucuriosso.md)
+- Motor: `shorts/` (Chromium + Playwright dibuja cada fotograma en SVG, ffmpeg lo codifica)
+
+## Requisitos
+
+```bash
+apt-get install -y ffmpeg espeak-ng   # espeak-ng solo para la voz de prueba
+pip install faster-whisper            # opcional: sincronía exacta (necesita acceso a huggingface.co)
+# Node 18+ y Playwright con Chromium
+```
+
+## Flujo de trabajo
+
+1. Elige un tema de la lista.
+2. Crea `shorts/proyectos/<tema>/` con:
+   - `audio.mp3`: tu voz en off (o .wav/.m4a/.ogg).
+   - `guion.txt`: el texto **exacto** del audio, con marcas de escena `[1] [2] ...` y
+     `*palabras*` clave entre asteriscos para el recuadro azul.
+   - `escenas.json`: qué se ve en cada escena (fondo, personajes, cámara, datos).
+   - Opcional: `musica.mp3` + `"musica": "musica.mp3"` en `escenas.json`.
+3. Vista previa y render:
+
+```bash
+cd shorts
+python hacer_short.py proyectos/<tema> --preview 1,5,10   # PNG en proyectos/<tema>/preview
+python hacer_short.py proyectos/<tema>                    # -> proyectos/<tema>/short.mp4
+```
+
+Sin faster-whisper, la sincronía de subtítulos se calcula detectando los silencios del
+audio y repartiendo las palabras por sílabas (por eso hace falta el texto del guion).
+
+## escenas.json
+
+```json
+{
+  "escenas": {
+    "1": {
+      "bg": "forest",
+      "camera": {"from": [540, 1150, 1.0], "to": [540, 1150, 1.25]},
+      "items": [{"type": "bearFront", "variant": "grizzly", "x": 540, "y": 1780, "roarAt": 1.2}],
+      "badge": {"text": "300", "unit": "kg", "at": 0.5}
+    }
+  }
+}
+```
+
+- **Fondos** (`bg`): `forest`, `forestNight`, `meadow`, `plains`, `storm`, `grass` (vista cenital), `sand`, `water`, `dark`.
+- **Cámara**: `[x, y, zoom]` del centro de la vista al empezar y al acabar la escena.
+- **Extras**: `shake` (temblor), `flash` (destello al entrar), `particles: "none"`, `vignette: false`.
+- **Items** (`type`): `bear` (perfil; `anim`: idle/walk/charge/roar; `variant`: grizzly/black/brown/polar),
+  `bearFront`, `hikerLying` (cenital), `hikerBack` (`anim: run`, `arms: up`), `trunk`, `fist`,
+  `glow` (arco que señala), `check`, `cross`, `label` (texto), `image` (PNG propio), `bush`.
+  Comunes: `x`, `y` (posición de los pies), `scale`, `flip`, `enter`/`exit` (segundos dentro de la escena),
+  `move: {from, to, start, end, ease}`.
+- Para animales nuevos se añade una función en `shorts/engine/assets.js`, o un `.js` dentro de la
+  carpeta del proyecto (se carga solo).
+
+El proyecto de ejemplo está en `shorts/proyectos/demo_oso` (con voz robótica de prueba: `--voz-prueba`).
