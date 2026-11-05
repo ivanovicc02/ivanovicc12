@@ -15,6 +15,8 @@
   //     mood: happy|scared|surprised|worried|neutral|talk, pose: idle|point|scared|wave|cheer|shrug|hips,
   //     coat (bata), glasses, look:[x,y], kid, seed}
   const POSES = {
+    hug: (k, s, t) => [[k * 60, -250 + Math.sin(t * 25) * 2], [-k * 40, -260 + Math.sin(t * 25) * 2]],
+    hold: (k, s) => (k > 0 ? [[120, -260], [170, -300]] : [[-92, -238 + s], [-96, -168 + s]]),
     idle: (k, s) => [[k * 92, -238 + s], [k * 96, -168 + s]],
     point: (k, s, t) => (k > 0 ? [[150, -330], [235, -390 + Math.sin(t * 3) * 6]] : [[-92, -238 + s], [-96, -168 + s]]),
     scared: (k, s, t) => [[k * 108, -300], [k * 52, -395 + Math.sin(t * 20) * 3]],
@@ -52,6 +54,7 @@
       const sh = [k * 74, -318];
       s += `<path d="M${sh[0]} ${sh[1]} Q${e[0]} ${e[1]} ${h[0]} ${h[1]}" stroke="${bodyCol}" stroke-width="36" stroke-linecap="round" fill="none"/>`;
       s += `<circle cx="${h[0]}" cy="${h[1]}" r="22" fill="${skin}"/>`;
+      if (p.holding && k > 0) s += `<g transform="translate(${h[0]},${h[1]}) rotate(${p.holdRot ?? -20}) scale(0.32)">${A.item({ kind: p.holding }, {})}</g>`;
       if (p.pose === 'point' && k > 0) s += `<path d="M${h[0] + 12} ${h[1] - 8} l34 -18" stroke="${skin}" stroke-width="13" stroke-linecap="round"/>`;
     });
     s += `</g>`;
@@ -80,6 +83,12 @@
     if (style === 'spiky') { let d = `M${-R} ${cy - 10}`; for (let i = 0; i <= 8; i++) { const a = Math.PI + (i / 8) * Math.PI; d += ` L${(Math.cos(a) * (R + (i % 2 ? 30 : 4))).toFixed(0)} ${(cy + Math.sin(a) * (R + (i % 2 ? 30 : 4))).toFixed(0)}`; } s += `<path d="${d} L${R} ${cy - 10} Q0 ${cy - R * 0.5} ${-R} ${cy - 10}Z" fill="${hairC}"/>`; }
     if (style === 'curly') for (let i = 0; i < 9; i++) { const a = Math.PI * (1.05 + i * 0.112); s += `<circle cx="${(Math.cos(a) * R * 0.92).toFixed(0)}" cy="${(cy + Math.sin(a) * R * 0.92).toFixed(0)}" r="30" fill="${hairC}"/>`; }
     if (style === 'bald') [-1, 1].forEach((k) => (s += `<path d="M${k * (R - 2)} ${cy + 10} Q${k * (R + 6)} ${cy - 30} ${k * (R - 22)} ${cy - 46}" stroke="${hairC}" stroke-width="16" fill="none" stroke-linecap="round"/>`));
+    if (mood === 'sleep') {
+      [-1, 1].forEach((k) => (s += `<path d="M${k * 30 - 14} ${cy - 2} q14 12 28 0" stroke="#3a2418" stroke-width="6" fill="none" stroke-linecap="round"/>`));
+      s += `<ellipse cx="0" cy="${cy + 44}" rx="9" ry="7" fill="#7a2a2a"/>`;
+      [-1, 1].forEach((k) => (s += `<ellipse cx="${k * 52}" cy="${cy + 26}" rx="14" ry="9" fill="#f08080" opacity="0.35"/>`));
+      return s;
+    }
     // ojos
     const ph = (t * 0.83) % 3.6;
     const blink = ph < 0.12 ? 0.12 : 1;
