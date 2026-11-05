@@ -1,11 +1,21 @@
-[1] Tu coche cae a un río. Tienes un *minuto*. ¿Qué haces primero: llamar al ciento doce, abrir la puerta o romper la ventana?
-[2] Escríbelo en los *comentarios* antes de que te lo diga… porque dos de esas tres pueden costarte la *vida*.
-[3] Si has dicho llamar: error. Mientras marcas, el coche se hunde. Primero sales, luego llamas.
-[4] Si has dicho la puerta: tampoco. El agua la empuja desde fuera con una fuerza que no vas a *vencer*.
-[5] La respuesta es la *ventana*. Durante el primer minuto el coche flota, y ese es el único momento fácil para salir.
-[6] Quítate el cinturón, baja la ventana mientras la batería funciona, y si no baja, rómpela golpeando en una *esquina*, nunca en el centro.
-[7] Si vas con niños, sácalos primero por la ventana, empezando por el *mayor*. Y después sales tú, nadando hacia arriba.
-[8] ¿Y si el coche ya está bajo el agua? Espera a que se llene casi entero. Cuando el agua te llega al cuello, la presión se iguala, y solo entonces la puerta se *abre*.
-[9] Pero hay un problema: muchos coches nuevos tienen cristales *laminados*, y esos no se rompen ni a martillazos.
-[10] Ahora dime la verdad: ¿llevas un *rompecristales* en el coche? Pon sí o no en los comentarios.
-[11] Y etiqueta a la persona que más conduce contigo… porque algún día puede ser quien te saque del *agua*.
+[1] [dramatic] Tu coche cae a un río. Tienes un MINUTO.
+[2] [curious] ¿Qué haces primero? [short pause] ¿Llamar al ciento doce... abrir la puerta... o romper la ventana?
+[3] [mischievously] Escríbelo en los comentarios antes de que te lo diga... [short pause] [serious] porque dos de esas tres pueden costarte la VIDA.
+
+[4] [firmly] Si has dicho llamar: error. Mientras marcas, el coche se hunde. Primero sales... y luego llamas.
+
+[5] Si has dicho la puerta: tampoco. El agua la empuja desde fuera con una fuerza que no vas a VENCER.
+
+[6] [confident] La respuesta es la VENTANA. Durante el primer minuto el coche flota, y ese es el único momento fácil para salir.
+
+[7] [urgent] Quítate el cinturón. Baja la ventana mientras la batería funciona. [8] Y si no baja... rómpela, golpeando en una ESQUINA. Nunca en el centro.
+
+[9] [calm] Si vas con niños, sácalos primero por la ventana, empezando por el MAYOR. Y después sales tú, nadando hacia arriba.
+
+[10] [serious] ¿Y si el coche ya está bajo el agua? [short pause] Espera a que se llene casi entero.
+[11] [whispers] Cuando el agua te llega al cuello, la presión se iguala...
+[firmly] y solo entonces, la puerta se ABRE.
+
+[12] [sighs] Pero hay un problema: muchos coches nuevos tienen cristales LAMINADOS... y esos no se rompen ni a martillazos.
+
+[13] [curious] Ahora dime la verdad: ¿llevas un rompecristales en el coche? [short pause] Pon sí o no en los comentarios.

@@ -240,6 +240,9 @@
     return { chunks: chunks.length, scenes: (P.scenes || []).length };
   };
 
+  window.renderCaptionsAt = renderCaptions;
+  window.getProject = () => P;
+
   window.renderAt = function (t) {
     const svg = document.getElementById('stage');
     const scenes = P.scenes;

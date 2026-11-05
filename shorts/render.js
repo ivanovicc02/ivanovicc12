@@ -16,10 +16,10 @@ function arg(name, def) {
   const audio = arg('audio', null);
   const frames = arg('frames', null);
   const data = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
-  const browser = await chromium.launch();
+  const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
   const page = await browser.newPage({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: 1 });
   page.on('pageerror', (e) => console.error('[página]', e.message));
-  await page.goto('file://' + path.join(__dirname, 'engine', 'index.html'));
+  await page.goto('file://' + (data.page || path.join(__dirname, 'engine', 'index.html')));
   if (data.extraAssets) {
     for (const f of data.extraAssets) await page.addScriptTag({ path: f });
   }

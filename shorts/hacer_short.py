@@ -54,8 +54,8 @@ def build(d, method="auto"):
     ids = sorted(al["markers"], key=lambda k: al["markers"][k])
     scenes = []
     for n, k in enumerate(ids):
-        sc = dict(cfg["escenas"].get(str(k)) or {})
-        if not sc:
+        sc = dict(cfg.get("escenas", {}).get(str(k)) or {})
+        if not sc and cfg.get("motor") != "3d":
             print(f"  aviso: la escena [{k}] no está en escenas.json; se usa un fondo vacío")
         sc["start"] = al["markers"][k] if n else 0.0
         sc["end"] = al["markers"][ids[n + 1]] if n + 1 < len(ids) else total
@@ -65,6 +65,8 @@ def build(d, method="auto"):
         raise SystemExit("El guion no tiene marcas de escena [1], [2]...")
     extra = [os.path.abspath(p) for p in glob.glob(os.path.join(d, "*.js"))]
     data = {"duration": total, "words": al["words"], "scenes": scenes, "extraAssets": extra}
+    if cfg.get("motor") == "3d":
+        data["page"] = os.path.join(HERE, "engine3d", "index.html")
     path = os.path.join(d, "data.json")
     json.dump(data, open(path, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     return path, audio, cfg

@@ -1,1 +1,2 @@
-faster-whisper  # opcional
+sherpa-onnx
+numpy

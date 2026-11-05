@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; padding: 0; background: #000; overflow: hidden; }
+  #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
+  #gl { position: absolute; inset: 0; width: 1080px; height: 1920px; }
+  #stage { display: none; }
+  #captions {
+    position: absolute; left: 70px; right: 70px; top: 250px; z-index: 5;
+    text-align: center; font-family: 'Inter', 'DejaVu Sans', sans-serif;
+    font-weight: 800; font-size: 66px; line-height: 1.22; color: #fff;
+    text-shadow: 0 3px 12px rgba(0,0,0,.7), 0 0 3px rgba(0,0,0,.7);
+    letter-spacing: -0.5px;
+  }
+  .w { display: inline-block; margin: 0 6px; position: relative; }
+  .w.past { color: rgba(255,255,255,.5); font-weight: 600; }
+  .w.now  { color: #fff; }
+  .w.hl::before {
+    content: ''; position: absolute; left: -8px; right: -8px; top: 2px; bottom: 0px;
+    border: 4px solid #5b7cff; border-radius: 4px; background: rgba(40,60,160,.35);
+  }
+  .w.hl .dot { position: absolute; width: 13px; height: 13px; border-radius: 50%;
+    background: #fff; border: 3px solid #5b7cff; box-sizing: border-box; }
+  .w.hl .d1 { left: -14px; top: -4px; } .w.hl .d2 { right: -14px; bottom: -6px; }
+  .w.hl .t { position: relative; }
+  #flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 6; }
+  #tint { position: absolute; inset: 0; pointer-events: none; z-index: 3;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,.5) 100%); }
+  #overlay { position: absolute; inset: 0; z-index: 4; font-family: 'Inter', 'DejaVu Sans', sans-serif; }
+  .ov { position: absolute; left: 50%; transform-origin: center; }
+  .badge { background: rgba(16,16,22,.85); color: #ffe7b0; font-weight: 800; font-size: 100px;
+    padding: 6px 44px 10px; border-radius: 40px; white-space: nowrap; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+  .badge small { font-size: 46px; margin-left: 8px; }
+  .card { width: 760px; margin-left: -380px; display: flex; align-items: center; gap: 28px;
+    background: rgba(255,255,255,.95); color: #18181f; font-weight: 800; font-size: 58px;
+    padding: 22px 34px; border-radius: 34px; box-shadow: 0 14px 34px rgba(0,0,0,.35); box-sizing: border-box; }
+  .card .n { width: 84px; height: 84px; border-radius: 50%; background: #5b7cff; color: #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 52px; flex: none; }
+  .card.bad { background: rgba(255,235,235,.95); text-decoration: line-through; text-decoration-color: #e5484d; text-decoration-thickness: 8px; }
+  .card.bad .n { background: #e5484d; }
+  .card.good .n { background: #2bb673; }
+  .mark { width: 230px; height: 230px; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; box-shadow: 0 14px 40px rgba(0,0,0,.4); }
+  .mark.ok { background: #2bb673; } .mark.no { background: #e5484d; }
+  .mark svg { width: 130px; height: 130px; }
+  .pill { font-weight: 900; font-size: 120px; color: #fff; padding: 10px 70px; border-radius: 80px;
+    box-shadow: 0 14px 40px rgba(0,0,0,.4); }
+  .pill.si { background: #2bb673; } .pill.no { background: #e5484d; }
+  .bubble { width: 250px; height: 200px; margin-left: -125px; background: #fff; border-radius: 60px;
+    display: flex; align-items: center; justify-content: center; gap: 22px; box-shadow: 0 14px 40px rgba(0,0,0,.4); }
+  .bubble::after { content: ''; position: absolute; left: 50px; bottom: -40px; border: 30px solid transparent;
+    border-top: 40px solid #fff; border-left: 10px solid #fff; }
+  .bubble i { width: 34px; height: 34px; border-radius: 50%; background: #5b7cff; display: block; }
+  .tag { background: #fff; color: #18181f; font-weight: 900; font-size: 64px; padding: 14px 40px;
+    border-radius: 24px; letter-spacing: 2px; box-shadow: 0 14px 40px rgba(0,0,0,.35); white-space: nowrap; }
+  .tag.warn { background: #ffcf3d; }
+</style>
+</head>
+<body>
+<div id="root">
+  <canvas id="gl" width="1080" height="1920"></canvas>
+  <svg id="stage"></svg>
+  <div id="tint"></div>
+  <div id="overlay"></div>
+  <div id="captions"></div>
+  <div id="flash"></div>
+</div>
+<script src="node_modules/three/build/three.min.js"></script>
+<script src="../engine/core.js"></script>
+<script src="kit.js"></script>
+</body>
+</html>

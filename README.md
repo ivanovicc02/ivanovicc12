@@ -61,3 +61,22 @@ audio y repartiendo las palabras por sílabas (por eso hace falta el texto del g
   carpeta del proyecto (se carga solo).
 
 El proyecto de ejemplo está en `shorts/proyectos/demo_oso` (con voz robótica de prueba: `--voz-prueba`).
+
+## Modo 3D (three.js)
+
+Para vídeos en 3D low-poly, `escenas.json` lleva `"motor": "3d"` y la carpeta del proyecto
+incluye un `escena3d.js` con los planos (`window.SHOTS[n] = (K, lt, dur, t) => {...}`).
+El kit (`shorts/engine3d/kit.js`) trae: cielo de atardecer, río con olas, orillas con pinos,
+modo submarino automático (niebla, rayos de luz), coche con puerta/ventanilla animables y
+agua interior, personas (sentado, nadando, flotando), móvil, rompecristales, martillo,
+flechas, burbujas, cristales rotos, grietas y salpicaduras. Las etiquetas en pantalla se ponen
+con `K.ov(...)` y `K.wt('palabra')` da el instante exacto en que se dice una palabra.
+
+```bash
+cd shorts/engine3d && npm install          # instala three.js
+cd .. && ./descargar_modelo.sh             # Whisper para sincronía exacta (opcional)
+python hacer_short.py proyectos/coche_agua_comentarios
+```
+
+Si el audio es de ElevenLabs puedes usar su texto tal cual como `guion.txt`: las etiquetas
+`[serious]`, `[short pause]`... se ignoran y las palabras en MAYÚSCULAS salen resaltadas.
