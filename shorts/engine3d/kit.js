@@ -293,13 +293,13 @@
     draw(c.getContext('2d'), w, h);
     const tx = new T.CanvasTexture(c); tx.colorSpace = T.SRGBColorSpace; return tx;
   }
-  K.makePhone = function () {
+  K.makePhone = function (num = '911') {
     const g = new T.Group();
     const b = mesh(new T.BoxGeometry(0.42, 0.85, 0.05), K.mat('#1c1c22', { roughness: 0.3, metalness: 0.4 })); g.add(b);
     const tx = labelTexture((x, w, h) => {
       const gr = x.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#20263a'); gr.addColorStop(1, '#0d1020');
       x.fillStyle = gr; x.fillRect(0, 0, w, h);
-      x.fillStyle = '#fff'; x.font = '800 92px Inter, sans-serif'; x.textAlign = 'center'; x.fillText('112', w / 2, 190);
+      x.fillStyle = '#fff'; x.font = '800 92px Inter, sans-serif'; x.textAlign = 'center'; x.fillText(num, w / 2, 190);
       x.font = '600 30px Inter, sans-serif'; x.fillStyle = '#9fb0d0'; x.fillText('Llamando...', w / 2, 240);
       x.fillStyle = '#e5484d'; x.beginPath(); x.arc(w / 2, 410, 46, 0, 7); x.fill();
       x.fillStyle = '#fff'; x.fillRect(w / 2 - 26, 404, 52, 12);

@@ -12,7 +12,7 @@
     O.car.rotation.order = 'YZX';
     K.scene.add(O.car);
     K.scene.add(K.camera);
-    O.phone = K.makePhone(); K.camera.add(O.phone);
+    O.phone = K.makePhone('911'); K.camera.add(O.phone);
     O.breaker = K.makeBreaker(); K.scene.add(O.breaker);
     O.hero = K.makeBreaker(); K.scene.add(O.hero);
     O.hammer = K.makeHammer(); K.scene.add(O.hammer);
@@ -95,12 +95,12 @@
     timer(K, lt, K.wt('minuto') - 0.05 - (t - lt), 60);
   };
 
-  // [2] ¿Qué haces primero? ¿Llamar al 112... abrir la puerta... o romper la ventana?
+  // [2] ¿Qué haces primero? ¿Llamar al 911... abrir la puerta... o romper la ventana?
   S[2] = (K, lt, dur, t) => {
     const a = K.lerp(3.5, 4.3, lt / dur), r = 9;
     K.cam([Math.cos(a) * r, 2.2, Z0 + Math.sin(a) * r], [Math.cos(a + 0.4) * r * 0.85, 1.8, Z0 + Math.sin(a + 0.4) * r * 0.85], [0, 0.4, Z0], [0, 0.6, Z0], lt / dur);
     const s0 = t - lt;
-    K.ovRaw('<div class="card"><span class="n">1</span>Llamar al 112</div>', 1260, lt, K.wt('llamar', s0) - s0);
+    K.ovRaw('<div class="card"><span class="n">1</span>Llamar al 911</div>', 1260, lt, K.wt('llamar', s0) - s0);
     K.ovRaw('<div class="card"><span class="n">2</span>Abrir la puerta</div>', 1420, lt, K.wt('abrir', s0) - s0);
     K.ovRaw('<div class="card"><span class="n">3</span>Romper la ventana</div>', 1580, lt, K.wt('romper', s0) - s0);
   };
@@ -171,7 +171,7 @@
     if (lt > tv) O.car.userData.winMat.emissive.set(0x2bb673).multiplyScalar(0.5 + 0.4 * Math.sin(lt * 6));
     const a = K.lerp(3.0, 3.6, lt / dur), r = K.lerp(6, 10, K.ease.inOut(lt / dur));
     K.cam([Math.cos(a) * r, 1.2, Z0 + Math.sin(a) * r], [Math.cos(a + 0.3) * r, 2.6, Z0 + Math.sin(a + 0.3) * r], [0, 1.2, Z0], [0, 0.6, Z0], lt / dur);
-    K.ov(K.MARK_OK, 600, lt, tv);
+    K.ov(K.MARK_OK, 760, lt, tv);
     timer(K, lt, K.wt('minuto', s0) - s0, 45);
   };
 
