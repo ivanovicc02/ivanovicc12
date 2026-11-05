@@ -240,7 +240,39 @@
     return { chunks: chunks.length, scenes: (P.scenes || []).length };
   };
 
-  window.renderCaptionsAt = renderCaptions;
+  // ---------- marca: marca de agua + cierre "sígueme" ----------
+  function renderBrand(t) {
+    const b = P && P.brand;
+    let el = document.getElementById('brand');
+    if (!b) { if (el) el.innerHTML = ''; return; }
+    if (!el) { el = document.createElement('div'); el.id = 'brand'; el.style.cssText = 'position:absolute;inset:0;z-index:7;pointer-events:none;font-family:Inter,sans-serif'; document.getElementById('root').appendChild(el); }
+    const words = P.words || [];
+    const tEnd = words.length ? words[words.length - 1].end + 0.35 : P.duration - b.cierre;
+    let html = '';
+    if (b.marca_agua && t < tEnd) {
+      html += `<div style="position:absolute;left:36px;top:1330px;display:flex;align-items:center;gap:14px;opacity:.9;background:rgba(15,10,30,.55);padding:8px 26px 8px 8px;border-radius:50px">
+        <img src="${b.logoUrl}" style="width:62px;height:62px;border-radius:50%;border:3px solid #fff;box-shadow:0 4px 14px rgba(0,0,0,.4)">
+        <span style="color:#fff;font-weight:800;font-size:36px;text-shadow:0 2px 8px rgba(0,0,0,.7)">${esc(b.handle)}</span></div>`;
+    }
+    if (b.cierre && t >= tEnd) {
+      const u = ease.out(clamp((t - tEnd) / 0.45, 0, 1)), k = ease.back(clamp((t - tEnd - 0.1) / 0.5, 0, 1));
+      const k2 = ease.back(clamp((t - tEnd - 0.45) / 0.45, 0, 1));
+      window.SFXLOG = window.SFXLOG || {};
+      window.SFXLOG['whoosh@cierre'] = { name: 'whoosh', t: tEnd - 0.1, vol: 1 };
+      window.SFXLOG['ding@cierre'] = { name: 'ding', t: tEnd + 0.45, vol: 0.8 };
+      html += `<div style="position:absolute;inset:0;background:rgba(20,14,40,${(0.88 * u).toFixed(2)})"></div>
+        <div style="position:absolute;left:0;right:0;top:560px;text-align:center;transform:scale(${k.toFixed(3)})">
+          <img src="${b.logoUrl}" style="width:300px;height:300px;border-radius:50%;border:8px solid #fff;box-shadow:0 18px 50px rgba(0,0,0,.5)">
+          <div style="color:#fff;font-weight:900;font-size:84px;margin-top:40px;text-shadow:0 4px 14px rgba(0,0,0,.5)">${esc(b.nombre)}</div>
+          <div style="color:#ffe7b0;font-weight:800;font-size:52px;margin-top:10px">${esc(b.handle)}</div>
+        </div>
+        <div style="position:absolute;left:0;right:0;top:1250px;text-align:center;transform:scale(${k2.toFixed(3)})">
+          <span style="display:inline-block;background:#e5484d;color:#fff;font-weight:900;font-size:64px;padding:22px 64px;border-radius:80px;box-shadow:0 14px 40px rgba(0,0,0,.45)">SÍGUEME PARA MÁS</span>
+        </div>`;
+    }
+    el.innerHTML = html;
+  }
+  window.renderCaptionsAt = (t) => { renderCaptions(t); renderBrand(t); };
   window.getProject = () => P;
 
   // ---------- escenas programadas (SHOTS2D) ----------
@@ -283,14 +315,14 @@
     const bg = r.bg ? (BACKGROUNDS[r.bg] || BACKGROUNDS.forest)(t) : '';
     let overlay = particles(t, r.particles || 'fireflies');
     if (r.vignette !== false) overlay += `<defs><radialGradient id="vg" cx="0.5" cy="0.5" r="0.75"><stop offset="0.6" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.45"/></radialGradient></defs><rect width="${W}" height="${H}" fill="url(#vg)"/>`;
-    if (window.DRY) return;
+    if (window.DRY) { renderBrand(t); return; }
     svg.innerHTML = `<g transform="translate(${W / 2},${H / 2}) scale(${z.toFixed(4)}) translate(${(-cx).toFixed(1)},${(-cy).toFixed(1)})">${bg}${r.world || ''}</g>${r.screen || ''}${overlay}`;
     svg.style.filter = r.filter || '';
     const ov = document.getElementById('overlay'); if (ov) ov.innerHTML = ovList.join('');
     const fl = document.getElementById('flash');
     fl.style.background = r.flashColor || '#fff';
     fl.style.opacity = (r.flash || 0).toFixed(2);
-    renderCaptions(t);
+    renderCaptions(t); renderBrand(t);
   }
 
   window.renderAt = function (t) {
@@ -322,6 +354,6 @@
     // destello
     const fl = document.getElementById('flash');
     fl.style.opacity = sc.flash ? (0.85 * (1 - clamp(lt / 0.25, 0, 1))).toFixed(2) : 0;
-    renderCaptions(t);
+    renderCaptions(t); renderBrand(t);
   };
 })();

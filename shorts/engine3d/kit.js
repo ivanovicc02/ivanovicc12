@@ -530,7 +530,7 @@
     K.animateFaces(t);
     // sigue la sombra al centro de interés
     sun.target.position.copy(K.focus || new T.Vector3()); sun.position.copy(sun.target.position).add(new T.Vector3(-40, 30, 35));
-    if (window.DRY) { (window.UWLOG = window.UWLOG || []).push([t, K.worldName === 'river' && !!K.underwater]); return; }
+    if (window.DRY) { window.renderCaptionsAt(t); (window.UWLOG = window.UWLOG || []).push([t, K.worldName === 'river' && !!K.underwater]); return; }
     renderer.render(scene, camera);
     canvas.style.filter = K.filter;
     ovEl.innerHTML = ovHtml.join('');

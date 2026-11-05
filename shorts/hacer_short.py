@@ -61,7 +61,12 @@ def build(d, method="auto"):
     cfg = json.load(open(os.path.join(d, "escenas.json"), encoding="utf-8"))
     al = align(script, audio, method)
     print(f"[alinear] {len(al['words'])} palabras, {al['duration']:.1f}s, método: {al['method']}")
-    tail = cfg.get("cola", 0.6)
+    marca = None
+    mp = os.path.join(HERE, "marca.json")
+    if os.path.exists(mp) and cfg.get("marca", True):
+        marca = json.load(open(mp, encoding="utf-8"))
+        marca["logoUrl"] = "file://" + os.path.join(HERE, "engine", marca.get("logo", "logo.png"))
+    tail = cfg.get("cola", 0.6) + (marca.get("cierre", 0) if marca else 0)
     total = al["duration"] + tail
     ids = sorted(al["markers"], key=lambda k: al["markers"][k])
     scenes = []
@@ -76,7 +81,7 @@ def build(d, method="auto"):
     if not scenes:
         raise SystemExit("El guion no tiene marcas de escena [1], [2]...")
     extra = [os.path.abspath(p) for p in glob.glob(os.path.join(d, "*.js"))]
-    data = {"duration": total, "words": al["words"], "scenes": scenes, "extraAssets": extra}
+    data = {"duration": total, "words": al["words"], "scenes": scenes, "extraAssets": extra, "brand": marca}
     if cfg.get("motor") == "3d":
         data["page"] = os.path.join(HERE, "engine3d", "index.html")
     path = os.path.join(d, "data.json")

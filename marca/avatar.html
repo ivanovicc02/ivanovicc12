@@ -1,0 +1,37 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:transparent}</style></head><body>
+<svg id="a" width="1080" height="1080" viewBox="0 0 1080 1080" xmlns="http://www.w3.org/2000/svg">
+<defs>
+ <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1d1636"/><stop offset="0.45" stop-color="#5a2f62"/><stop offset="0.75" stop-color="#c9606a"/><stop offset="1" stop-color="#f6b36f"/></linearGradient>
+ <radialGradient id="glow" cx="0.5" cy="0.45" r="0.5"><stop offset="0" stop-color="#ffe7b0" stop-opacity="0.45"/><stop offset="1" stop-color="#ffe7b0" stop-opacity="0"/></radialGradient>
+ <filter id="sh" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#1a0f2a" flood-opacity="0.55"/></filter>
+</defs>
+<rect width="1080" height="1080" fill="url(#sky)"/>
+<circle cx="540" cy="500" r="430" fill="url(#glow)"/>
+<g id="stars"></g>
+<g id="pines"></g>
+<g filter="url(#sh)">
+ <text x="540" y="760" text-anchor="middle" font-family="Inter, sans-serif" font-weight="900" font-size="760" fill="#ffffff">?</text>
+</g>
+<g id="mascot"></g>
+</svg>
+<script>
+const r=(s=>()=>(s=(s*16807)%2147483647)/2147483647)(7);
+let st='';for(let i=0;i<40;i++)st+=`<circle cx="${r()*1080}" cy="${r()*420}" r="${1.5+r()*3}" fill="#fff" opacity="${0.3+r()*0.6}"/>`;
+document.getElementById('stars').innerHTML=st;
+const pine=(x,b,h,w,c)=>{let s='';for(let i=0;i<4;i++){const top=b-h+h*i/4.6,bot=top+h*0.42,ww=w*(0.45+0.55*(i+1)/4);s+=`<polygon points="${x},${top} ${x-ww/2},${bot} ${x+ww/2},${bot}" fill="${c}"/>`}return s};
+let p='';for(let x=-40;x<1120;x+=70+r()*40)p+=pine(x,1090,220+r()*160,140+r()*50,'#22403f');
+for(let x=-60;x<1140;x+=120+r()*80)p+=pine(x,1100,300+r()*220,190+r()*70,'#163130');
+document.getElementById('pines').innerHTML=p;
+if(location.hash==='#m'){ // variante con mascota: carita sorprendida dentro del punto
+ document.querySelector('text').setAttribute('font-size','700');
+ document.getElementById('mascot').innerHTML=`<g transform="translate(540,632) scale(1.05)">
+ <circle r="105" fill="#ffd36e"/><circle r="105" fill="none" stroke="#fff" stroke-width="10"/>
+ <ellipse cx="-36" cy="-14" rx="20" ry="26" fill="#fff"/><ellipse cx="36" cy="-14" rx="20" ry="26" fill="#fff"/>
+ <circle cx="-32" cy="-10" r="12" fill="#1d1d24"/><circle cx="40" cy="-10" r="12" fill="#1d1d24"/>
+ <circle cx="-28" cy="-15" r="4" fill="#fff"/><circle cx="44" cy="-15" r="4" fill="#fff"/>
+ <path d="M-56 -56 q20 -16 40 -6 M56 -56 q-20 -16 -40 -6" stroke="#7a4a22" stroke-width="8" fill="none" stroke-linecap="round"/>
+ <ellipse cx="2" cy="44" rx="18" ry="24" fill="#6b2328"/>
+ <ellipse cx="-66" cy="26" rx="16" ry="10" fill="#f08080" opacity=".5"/><ellipse cx="68" cy="26" rx="16" ry="10" fill="#f08080" opacity=".5"/></g>`;
+ document.querySelector('text').setAttribute('y','700');
+}
+</script></body></html>
