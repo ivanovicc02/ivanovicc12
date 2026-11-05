@@ -192,6 +192,18 @@ def rumble(d=2.0):
     return _norm(s + 0.4 * np.sin(2 * np.pi * 38 * t) * np.sin(np.pi * t / d), 0.9)
 
 
+def hiss(d=3.0):
+    t = _t(d)
+    return _norm(_hp(_noise(d), 3500) * np.minimum(1, t * 4) * np.minimum(1, (d - t) * 4) * (0.8 + 0.2 * np.sin(2 * np.pi * 3 * t)), 0.5)
+
+
+def creak(d=0.9):
+    t = _t(d)
+    f = 220 + 90 * np.sin(2 * np.pi * 1.3 * t)
+    s = np.sign(np.sin(2 * np.pi * np.cumsum(f) / SR)) * (0.5 + 0.5 * np.sin(2 * np.pi * 31 * t))
+    return _norm(_bp(s, 300, 2500) * np.sin(np.pi * t / d), 0.5)
+
+
 def step():
     t = _t(0.18)
     return _norm(_lp(_noise(0.18), 900) * np.exp(-t * 35) + 0.5 * np.sin(2 * np.pi * 80 * t) * np.exp(-t * 30), 0.6)
@@ -200,10 +212,10 @@ def step():
 SOUNDS = {"whoosh": whoosh, "pop": pop, "ding": ding, "buzz": buzz, "splash": splash, "glass": glass,
           "hit": hit, "boom": boom, "bubbles": bubbles, "riser": riser, "tick": tick,
           "squelch": squelch, "waves": waves, "heartbeat": heartbeat, "projector": projector, "drip": drip,
-          "swoosh": swoosh, "rumble": rumble, "step": step}
+          "swoosh": swoosh, "rumble": rumble, "step": step, "hiss": hiss, "creak": creak}
 GAIN = {"whoosh": 0.35, "pop": 0.32, "ding": 0.4, "buzz": 0.35, "splash": 0.6, "glass": 0.5, "hit": 0.55,
         "boom": 0.6, "bubbles": 0.35, "riser": 0.35, "tick": 0.3, "squelch": 0.6, "waves": 0.35,
-        "heartbeat": 0.7, "projector": 0.3, "drip": 0.35, "swoosh": 0.3, "rumble": 0.6, "step": 0.4}
+        "heartbeat": 0.7, "projector": 0.3, "drip": 0.35, "swoosh": 0.3, "rumble": 0.6, "step": 0.4, "hiss": 0.25, "creak": 0.4}
 
 
 def music_bed(d, mood="tension"):
@@ -243,7 +255,7 @@ def load_audio(path):
     return np.frombuffer(pcm, dtype=np.float32).astype(np.float64)
 
 
-AMBIENT = {"waves", "heartbeat", "rumble", "projector", "bubbles", "riser"}
+AMBIENT = {"hiss", "waves", "heartbeat", "rumble", "projector", "bubbles", "riser"}
 
 
 def nivelar_voz(path):
