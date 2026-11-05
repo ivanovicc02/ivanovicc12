@@ -1,5 +1,5 @@
 [1] [dramatic] Tu coche cae a un río. Tienes un MINUTO.
-[2] [curious] ¿Qué haces primero? [short pause] ¿Llamar al nueve uno uno... abrir la puerta... o romper la ventana?
+[2] [curious] ¿Qué haces primero? [short pause] ¿Llamar al 911... abrir la puerta... o romper la ventana?
 [3] [mischievously] Escríbelo en los comentarios antes de que te lo diga... [short pause] [serious] porque dos de esas tres pueden costarte la VIDA.
 
 [4] [firmly] Si has dicho llamar: error. Mientras marcas, el coche se hunde. Primero sales... y luego llamas.
