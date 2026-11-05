@@ -7,3 +7,4 @@ shorts/proyectos/*/*.mp4
 shorts/proyectos/*/audio.*
 shorts/modelos/
 shorts/engine3d/node_modules/
+shorts/proyectos/*/_*

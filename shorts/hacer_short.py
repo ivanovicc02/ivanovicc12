@@ -26,8 +26,20 @@ AUDIO_EXT = ("mp3", "wav", "m4a", "ogg", "opus", "aac", "flac")
 
 
 def find_audio(d):
+    """audio.mp3, o varias partes (parte1.mp3, parte2.mp3...) que se unen en orden."""
+    parts = sorted(f for ext in AUDIO_EXT for f in glob.glob(os.path.join(d, f"parte*.{ext}")))
+    if parts:
+        out = os.path.join(d, "_voz.wav")
+        cmd = ["ffmpeg", "-v", "error", "-y"]
+        for p in parts:
+            cmd += ["-i", p]
+        flt = "".join(f"[{i}:a]aresample=44100,aformat=channel_layouts=mono,apad=pad_dur=0.35[a{i}];" for i in range(len(parts)))
+        flt += "".join(f"[a{i}]" for i in range(len(parts))) + f"concat=n={len(parts)}:v=0:a=1[o]"
+        subprocess.run(cmd + ["-filter_complex", flt, "-map", "[o]", out], check=True)
+        print(f"[audio] unidas {len(parts)} partes: " + ", ".join(os.path.basename(p) for p in parts))
+        return out
     for ext in AUDIO_EXT:
-        f = glob.glob(os.path.join(d, f"audio.{ext}")) or glob.glob(os.path.join(d, f"*.{ext}"))
+        f = glob.glob(os.path.join(d, f"audio.{ext}")) or [x for x in glob.glob(os.path.join(d, f"*.{ext}")) if not os.path.basename(x).startswith("_")]
         if f:
             return f[0]
     return None
@@ -81,6 +93,31 @@ def mix_music(d, voice, music, vol):
     return out
 
 
+def add_sfx(d, data_path, voice, render, cfg):
+    """Efectos de sonido sintetizados + cama musical (ver sfx.py)."""
+    import sfx
+    data = json.load(open(data_path, encoding="utf-8"))
+    ev = {"sfx": [], "uw": []}
+    if data.get("page"):
+        evp = os.path.join(d, "_eventos.json")
+        subprocess.run(["node", render, data_path, "-", "--events", evp], check=True)
+        ev = json.load(open(evp))
+    uw, cur = [], None
+    for t, flag in ev["uw"]:
+        if flag and cur is None:
+            cur = t
+        if not flag and cur is not None:
+            uw.append((cur, t)); cur = None
+    if cur is not None:
+        uw.append((cur, data["duration"]))
+    inicios = [s["start"] for s in data["scenes"]]
+    out = os.path.join(d, "_mezcla.wav")
+    sfx.mezclar(voice, data["duration"], ev["sfx"], uw, inicios, out,
+                musica=cfg.get("cama_musical", True), vol_musica=cfg.get("volumen_cama", 0.08))
+    print(f"[sonido] {len(ev['sfx'])} efectos, {len(uw)} tramos bajo el agua, {len(inicios) - 1} transiciones")
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("proyecto")
@@ -99,6 +136,8 @@ def main():
         return
     if cfg.get("musica"):
         audio = mix_music(d, audio, os.path.join(d, cfg["musica"]), cfg.get("volumen_musica", 0.12))
+    elif cfg.get("sonidos", True):
+        audio = add_sfx(d, data, audio, render, cfg)
     out = os.path.join(d, cfg.get("salida", "short.mp4"))
     subprocess.run(["node", render, data, out, "--fps", str(a.fps), "--audio", audio], check=True)
 

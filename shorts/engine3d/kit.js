@@ -154,6 +154,22 @@
     m.position.set(-18 + i * 4.5, 0, -6 + (i % 3) * 5); m.rotation.z = 0.25; m.visible = false; scene.add(m); K.shafts.push(m);
   }
 
+  // ---------- mundos: todo lo construido hasta aquí es el mundo "río" ----------
+  const riverG = new T.Group();
+  scene.children.slice().forEach((o) => { if (!o.isLight && o !== sky && o !== sunDisc && o !== sun.target) riverG.add(o); });
+  scene.add(riverG);
+  K.worlds = { river: riverG };
+  K.worldHooks = {};
+  K.worldName = 'river';
+  K.setWorld = function (name) {
+    if (name === K.worldName) return;
+    for (const k in K.worlds) K.worlds[k].visible = k === name;
+    K.worldName = name;
+    if (name === 'river') { K.underwater = null; K.setUnderwater(false); }
+    if (K.worldHooks[name]) K.worldHooks[name]();
+  };
+  K.sky = sky; K.sunDisc = sunDisc; K.skyMat = skyMat;
+
   // ---------- modo submarino ----------
   const fogAir = new T.Fog(0xe7a07a, 60, 320), fogWater = new T.Fog(0x0e5a6c, 1.5, 26);
   K.underwater = false;
@@ -248,20 +264,55 @@
   };
 
   // ---------- PERSONAS ----------
+  K.people = [];
+  K.setMood = function (p, mood) {
+    p.userData.mouthHappy.visible = mood === 'happy';
+    p.userData.mouthO.visible = mood !== 'happy';
+    p.userData.mood = mood;
+  };
+  K.animateFaces = function (t) {
+    K.people.forEach((p) => {
+      const ph = (t + p.userData.seed) % 3.7;
+      const b = ph < 0.12 ? 0.1 : 1;
+      p.userData.eyes.forEach((e, i) => { if (i % 2 === 0) e.scale.y = b; });
+      p.userData.mouthO.scale.y = p.userData.mood === 'scared' ? 1.1 + 0.25 * Math.sin(t * 9 + p.userData.seed) : 1.1;
+    });
+  };
   K.makePerson = function (o = {}) {
     const g = new T.Group();
     const sc = o.scale || 1;
     const skin = K.mat(o.skin || '#c98d66'), shirt = K.mat(o.shirt || '#2fb3a3'), pants = K.mat(o.pants || '#2f5fb8'), hair = K.mat(o.hair || '#3a2418');
     const torso = mesh(new T.CapsuleGeometry(0.2, 0.42, 4, 10), shirt); torso.position.y = 0.45; g.add(torso);
-    const head = mesh(new T.SphereGeometry(0.17, 16, 12), skin); head.position.y = 0.92; g.add(head);
-    const hr = mesh(new T.SphereGeometry(0.18, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2.1), hair); hr.position.y = 0.94; hr.rotation.z = 0.15; g.add(hr);
+    const head = mesh(new T.SphereGeometry(0.19, 20, 16), skin); head.position.y = 0.95; g.add(head);
+    const hr = mesh(new T.SphereGeometry(0.2, 20, 16, 0, Math.PI * 2, 0, Math.PI / 2.2), hair); hr.position.set(-0.02, 0.975, 0); hr.rotation.z = 0.32; g.add(hr);
+    // cara (mira hacia +x)
+    const face = new T.Group(); face.position.y = 0.95; g.add(face);
+    const white = K.mat('#ffffff', { roughness: 0.3 }), black = K.mat('#15151a', { roughness: 0.2 });
+    const eyes = [];
+    [-1, 1].forEach((k) => {
+      const e = new T.Group(); e.position.set(0.155, 0.04, k * 0.075); face.add(e);
+      const w = mesh(new T.SphereGeometry(0.062, 14, 10), white, false, false); w.scale.set(0.55, 1.2, 1); e.add(w);
+      const pu = mesh(new T.SphereGeometry(0.036, 12, 8), black, false, false); pu.position.set(0.03, -0.004, 0); e.add(pu);
+      const gl = mesh(new T.SphereGeometry(0.009, 6, 4), white, false, false); gl.position.set(0.05, 0.012, 0.01); e.add(gl);
+      eyes.push(e);
+      const br = mesh(new T.BoxGeometry(0.02, 0.018, 0.075), K.mat(o.hair || '#3a2418'), false, false);
+      br.position.set(0.175, 0.125, k * 0.077); br.rotation.x = k * 0.12; face.add(br); eyes.push(br);
+    });
+    const nose = mesh(new T.SphereGeometry(0.032, 10, 8), skin, false, false); nose.position.set(0.19, -0.015, 0); face.add(nose);
+    const mouthHappy = mesh(new T.TorusGeometry(0.045, 0.011, 6, 16, Math.PI), K.mat('#6b2a2a'), false, false);
+    mouthHappy.position.set(0.172, -0.07, 0); mouthHappy.rotation.set(Math.PI, Math.PI / 2, 0); face.add(mouthHappy);
+    const mouthO = mesh(new T.SphereGeometry(0.035, 12, 8), K.mat('#5a1f24'), false, false);
+    mouthO.scale.set(0.4, 1.1, 0.9); mouthO.position.set(0.17, -0.08, 0); face.add(mouthO);
+    [-1, 1].forEach((k) => { const c = mesh(new T.SphereGeometry(0.03, 8, 6), K.mat('#f08b8b', { transparent: true, opacity: 0.45 }), false, false); c.scale.set(0.3, 0.6, 1); c.position.set(0.16, -0.035, k * 0.12); face.add(c); });
     const limb = (mat, r, L) => { const p = new T.Group(); const m = mesh(new T.CapsuleGeometry(r, L, 3, 8), mat); m.position.y = -L / 2 - r; p.add(m); return p; };
     const armL = limb(shirt, 0.07, 0.38), armR = limb(shirt, 0.07, 0.38);
     armL.position.set(0, 0.7, 0.26); armR.position.set(0, 0.7, -0.26); g.add(armL, armR);
     const legL = limb(pants, 0.09, 0.42), legR = limb(pants, 0.09, 0.42);
     legL.position.set(0, 0.15, 0.11); legR.position.set(0, 0.15, -0.11); g.add(legL, legR);
     g.scale.setScalar(sc);
-    Object.assign(g.userData, { armL, armR, legL, legR, head });
+    Object.assign(g.userData, { armL, armR, legL, legR, head, eyes, mouthHappy, mouthO, seed: K.people.length * 1.7 });
+    K.setMood(g, o.mood || 'happy');
+    K.people.push(g);
     return g;
   };
   K.pose = function (p, kind, t = 0) {
@@ -423,12 +474,19 @@
   // ---------- overlays HTML ----------
   const ovEl = document.getElementById('overlay');
   let ovHtml = [];
+  window.SFXLOG = {};
+  K.sfx = function (name, at, vol = 1) { // at: tiempo absoluto en segundos
+    window.SFXLOG[name + '@' + at.toFixed(2)] = { name, t: at, vol };
+  };
+  const ovSound = (html) => (html.includes('mark ok') ? 'ding' : html.includes('mark no') ? 'buzz' : 'pop');
   K.ov = function (html, y, lt, at, extraStyle = '') {
+    if (lt >= at) K.sfx(ovSound(html), K.s0 + at, 0.7);
     if (lt < at) return;
     const u = ease.back(clamp((lt - at) / 0.3, 0, 1));
     ovHtml.push(`<div class="ov" style="top:${y}px;transform:translateX(-50%) scale(${u.toFixed(3)});${extraStyle}">${html}</div>`);
   };
   K.ovRaw = function (html, y, lt, at) { // ya centrado por su propia clase (margin-left)
+    if (lt >= at) K.sfx(ovSound(html), K.s0 + at, 0.7);
     if (lt < at) return;
     const u = ease.back(clamp((lt - at) / 0.3, 0, 1));
     ovHtml.push(`<div class="ov" style="top:${y}px;transform:scale(${u.toFixed(3)})">${html}</div>`);
@@ -455,18 +513,26 @@
     for (const s of scenes) if (t >= s.start) sc = s;
     const lt = t - sc.start, dur = Math.max(0.01, sc.end - sc.start);
     ovHtml = [];
+    K.s0 = sc.start;
+    K.filter = '';
     K.hideParticles();
-    K.updateWater(t);
-    K.weeds.forEach((w) => (w.rotation.z = Math.sin(t * 1.3 + w.userData.ph) * 0.18));
     camera.fov = 50; camera.updateProjectionMatrix();
     const shot = window.SHOTS && window.SHOTS[sc.id];
     if (window.RESET3D) window.RESET3D(K, t);
     if (shot) shot(K, lt, dur, t);
+    if (K.worldName === 'river') {
+      K.updateWater(t);
+      K.weeds.forEach((w) => (w.rotation.z = Math.sin(t * 1.3 + w.userData.ph) * 0.18));
+      const uw = camera.position.y < K.wave(camera.position.x, camera.position.z, t) - 0.05;
+      if (uw !== K.underwater) K.setUnderwater(uw);
+    }
+    if (K.onFrame) K.onFrame(t);
+    K.animateFaces(t);
     // sigue la sombra al centro de interés
     sun.target.position.copy(K.focus || new T.Vector3()); sun.position.copy(sun.target.position).add(new T.Vector3(-40, 30, 35));
-    const uw = camera.position.y < K.wave(camera.position.x, camera.position.z, t) - 0.05;
-    if (uw !== K.underwater) K.setUnderwater(uw);
+    if (window.DRY) { (window.UWLOG = window.UWLOG || []).push([t, K.worldName === 'river' && !!K.underwater]); return; }
     renderer.render(scene, camera);
+    canvas.style.filter = K.filter;
     ovEl.innerHTML = ovHtml.join('');
     const fl = document.getElementById('flash');
     fl.style.background = K.flashColor || '#fff';

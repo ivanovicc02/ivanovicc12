@@ -87,6 +87,7 @@
       floatCar(K, t, { z, y: K.wave(0, z, t) * 0.7 - 0.85 - 1.1 * Math.exp(-2.2 * tau) * Math.cos(4 * tau) });
       c.rotation.z = -0.09 - 0.45 * Math.exp(-3 * tau);
       K.splashAt(new K.T.Vector3(0, 0, -5.5), tau);
+      K.sfx('splash', K.s0 + ti, 1);
       K.flash = 0.18 * Math.max(0, 1 - tau / 0.2);
     }
     c.updateMatrixWorld(true);
@@ -116,6 +117,7 @@
       const u = (lt - tu) / (dur - tu);
       K.cam([-7.5, -2.2, Z0 + 2.5], [-6, -3.2, Z0 + 1.2], [0, -0.6, Z0], [0, -0.8, Z0], u);
       K.bubblesFrom(L(K, 0, 0.6, 0), t, 1.8, 1, 0);
+      K.sfx('bubbles', K.s0 + tu, 0.8);
       K.ov('<div class="badge" style="color:#ff8a8f">2 de 3</div>', 560, lt, K.wt('dos', s0) - s0);
       const tv = K.wt('vida', s0) - s0;
       if (lt > tv) { K.flash = 0.35 * Math.max(0, 1 - (lt - tv) / 0.5); K.flashColor = '#e5484d'; }
@@ -203,6 +205,7 @@
     O.ringOk.visible = lt > tg && lt < te; O.ringOk.scale.setScalar(1 + 0.15 * Math.sin(lt * 10));
     if (lt > te) {
       u.winGroup.visible = false;
+      K.sfx('glass', K.s0 + te, 1);
       K.burstShards(L(K, 0.45, 1.4, 0.9), new K.T.Vector3(1, 0, 0), lt - te);
       K.flash = 0.22 * Math.max(0, 1 - (lt - te) / 0.12);
       K.shake(0.05 * Math.exp(-(lt - te) * 8), t);
@@ -272,6 +275,7 @@
       K.ov('<div class="tag">DENTRO = FUERA</div>', 1500, lt, tp + 0.2);
     }
     if (lt > ta) {
+      K.sfx('bubbles', K.s0 + ta, 1);
       u.doorPivot.rotation.y = 1.15 * K.ease.out(K.clamp((lt - ta) / 0.6, 0, 1));
       K.bubblesFrom(L(K, 0.3, 1.2, 1.4), t, 0.8, 1.4, 0);
       K.ov(K.MARK_OK, 600, lt, ta);
@@ -287,7 +291,7 @@
     K.ov('<div class="tag warn">CRISTAL LAMINADO</div>', 600, lt, K.wt('laminados', s0) - s0);
     const hits = [K.wt('rompen', s0), K.wt('ni', K.wt('rompen', s0)), K.wt('martillazos', s0) + 0.25].map((x) => x - s0);
     let level = 0;
-    hits.forEach((h) => { if (lt > h) level++; });
+    hits.forEach((h) => { if (lt > h) { level++; K.sfx('hit', K.s0 + h, 1); } });
     O.crack.visible = level > 0; K.setCracks(level, 0.5, 0.45);
     if (lt > hits[0] - 0.6) {
       O.hammer.visible = true;

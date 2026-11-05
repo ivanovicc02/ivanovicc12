@@ -26,6 +26,17 @@ function arg(name, def) {
   await page.evaluate(() => document.fonts.ready);
   console.log('proyecto:', await page.evaluate((d) => window.loadProject(d), data));
 
+  if (arg('events', null)) {
+    // pasada rápida sin dibujar: recoge efectos de sonido y tramos bajo el agua
+    await page.evaluate(() => { window.DRY = true; });
+    const n = Math.ceil(data.duration * 15);
+    for (let i = 0; i <= n; i++) await page.evaluate((t) => window.renderAt(t), i / 15);
+    const ev = await page.evaluate(() => ({ sfx: Object.values(window.SFXLOG || {}), uw: window.UWLOG || [] }));
+    fs.writeFileSync(arg('events'), JSON.stringify(ev));
+    await browser.close();
+    return;
+  }
+
   if (frames) {
     // modo vista previa: fotogramas sueltos en PNG
     const dir = arg('outdir', '.');
