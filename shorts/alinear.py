@@ -18,7 +18,8 @@ import subprocess
 import sys
 import unicodedata
 
-TOKEN = re.compile(r"\[(\d+)\]|(\S+)")
+# [n] = escena; [etiquetas de ElevenLabs] y <break .../> se ignoran
+TOKEN = re.compile(r"\[(\d+)\]|\[[^\]]*\]|<[^>]*>|(\S+)")
 
 
 def parse_script(text):
@@ -28,9 +29,18 @@ def parse_script(text):
             markers[int(m.group(1))] = len(words)
             continue
         raw = m.group(2)
+        if raw is None:
+            continue
         hl = "*" in raw
         w = raw.replace("*", "")
-        if w:
+        letters = re.sub(r"[^A-Za-zÁÉÍÓÚÑÜáéíóúñü]", "", w)
+        if len(letters) > 1 and letters.isupper():
+            # MAYÚSCULAS = énfasis para ElevenLabs -> resaltado en minúsculas
+            hl = True
+            w = w.lower()
+            if not words or re.search(r"[.?!…:]$", words[-1]["w"]):
+                w = w[:1].upper() + w[1:]
+        if w and not re.fullmatch(r"[.…,;:!?¡¿]+", w):
             words.append({"w": w, "hl": hl})
     return words, markers
 
