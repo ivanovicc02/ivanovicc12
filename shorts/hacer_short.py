@@ -98,7 +98,7 @@ def add_sfx(d, data_path, voice, render, cfg):
     import sfx
     data = json.load(open(data_path, encoding="utf-8"))
     ev = {"sfx": [], "uw": []}
-    if data.get("page"):
+    if True:
         evp = os.path.join(d, "_eventos.json")
         subprocess.run(["node", render, data_path, "-", "--events", evp], check=True)
         ev = json.load(open(evp))

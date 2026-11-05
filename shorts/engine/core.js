@@ -243,12 +243,64 @@
   window.renderCaptionsAt = renderCaptions;
   window.getProject = () => P;
 
+  // ---------- escenas programadas (SHOTS2D) ----------
+  // Un proyecto puede definir window.SHOTS2D[n] = (H, lt, dur, t) => ({ bg, cam:[cx,cy,z], world, screen, shake, flash, flashColor, filter })
+  const H2 = (window.H2 = { rng, clamp, lerp, ease, esc, W, H });
+  H2.pop = (lt, at, d = 0.35) => ease.back(clamp((lt - at) / d, 0, 1));
+  H2.wt = function (word, after = 0) {
+    const n = (s) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9ñ]/g, '');
+    const w = P.words.find((x) => x.start >= after - 0.01 && n(x.w) === n(word));
+    return w ? w.start : after;
+  };
+  window.SFXLOG = window.SFXLOG || {};
+  H2.sfx = (name, at, vol = 1) => { window.SFXLOG[name + '@' + at.toFixed(2)] = { name, t: at, vol }; };
+  let ovList = [];
+  const ovSound = (html) => (html.includes('mark ok') ? 'ding' : html.includes('mark no') ? 'buzz' : 'pop');
+  H2.ov = function (html, y, lt, at, extra = '') {
+    if (lt < at) return;
+    H2.sfx(ovSound(html), H2.s0 + at, 0.7);
+    const u = ease.back(clamp((lt - at) / 0.3, 0, 1));
+    ovList.push(`<div class="ov" style="top:${y}px;transform:translateX(-50%) scale(${u.toFixed(3)});${extra}">${html}</div>`);
+  };
+  H2.ovRaw = function (html, y, lt, at) {
+    if (lt < at) return;
+    H2.sfx(ovSound(html), H2.s0 + at, 0.7);
+    const u = ease.back(clamp((lt - at) / 0.3, 0, 1));
+    ovList.push(`<div class="ov" style="top:${y}px;transform:scale(${u.toFixed(3)})">${html}</div>`);
+  };
+  H2.MARK_OK = '<div class="mark ok"><svg viewBox="-60 -60 120 120"><path d="M-36 2 L-8 30 L40 -28" stroke="#fff" stroke-width="20" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>';
+  H2.MARK_NO = '<div class="mark no"><svg viewBox="-60 -60 120 120"><path d="M-32 -32 L32 32 M32 -32 L-32 32" stroke="#fff" stroke-width="20" stroke-linecap="round"/></svg></div>';
+  // envoltorio: dibuja un asset en (x, y) con escala s
+  H2.at = (x, y, s, inner, rot = 0, op = 1) => `<g transform="translate(${x.toFixed(1)},${y.toFixed(1)}) rotate(${rot.toFixed(2)}) scale(${s.toFixed(4)})" opacity="${op}">${inner}</g>`;
+  H2.cam = (a, b, u, e = 'inOut') => { const k = ease[e](clamp(u, 0, 1)); return [lerp(a[0], b[0], k), lerp(a[1], b[1], k), lerp(a[2], b[2], k)]; };
+
+  function renderShot2D(fn, sc, lt, dur, t, svg) {
+    H2.s0 = sc.start; ovList = [];
+    const r = fn(H2, lt, dur, t) || {};
+    let [cx, cy, z] = r.cam || [540, 960, 1];
+    if (sc.punch !== false && r.punch !== false) z *= 1 + 0.05 * (1 - ease.out(clamp(lt / 0.3, 0, 1)));
+    if (r.shake) { cx += Math.sin(t * 53) * r.shake; cy += Math.cos(t * 47) * r.shake; }
+    const bg = r.bg ? (BACKGROUNDS[r.bg] || BACKGROUNDS.forest)(t) : '';
+    let overlay = particles(t, r.particles || 'fireflies');
+    if (r.vignette !== false) overlay += `<defs><radialGradient id="vg" cx="0.5" cy="0.5" r="0.75"><stop offset="0.6" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.45"/></radialGradient></defs><rect width="${W}" height="${H}" fill="url(#vg)"/>`;
+    if (window.DRY) return;
+    svg.innerHTML = `<g transform="translate(${W / 2},${H / 2}) scale(${z.toFixed(4)}) translate(${(-cx).toFixed(1)},${(-cy).toFixed(1)})">${bg}${r.world || ''}</g>${r.screen || ''}${overlay}`;
+    svg.style.filter = r.filter || '';
+    const ov = document.getElementById('overlay'); if (ov) ov.innerHTML = ovList.join('');
+    const fl = document.getElementById('flash');
+    fl.style.background = r.flashColor || '#fff';
+    fl.style.opacity = (r.flash || 0).toFixed(2);
+    renderCaptions(t);
+  }
+
   window.renderAt = function (t) {
     const svg = document.getElementById('stage');
     const scenes = P.scenes;
     let sc = scenes[0];
     for (const s of scenes) if (t >= s.start) sc = s;
     const lt = t - sc.start, dur = Math.max(0.01, sc.end - sc.start);
+    const fn2 = window.SHOTS2D && window.SHOTS2D[sc.id];
+    if (fn2) return renderShot2D(fn2, sc, lt, dur, t, svg);
     // cámara
     const cam = sc.camera || {};
     const c0 = cam.from || [540, 960, 1], c1 = cam.to || c0;

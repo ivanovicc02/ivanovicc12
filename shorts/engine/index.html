@@ -25,15 +25,45 @@
   .w.hl .d1 { left: -14px; top: -4px; } .w.hl .d2 { right: -14px; bottom: -6px; }
   .w.hl .t { position: relative; }
   #flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
+  #overlay { position: absolute; inset: 0; z-index: 4; font-family: 'Inter', 'DejaVu Sans', sans-serif; }
+  .ov { position: absolute; left: 50%; transform-origin: center; }
+  .badge { background: rgba(16,16,22,.85); color: #ffe7b0; font-weight: 800; font-size: 100px;
+    padding: 6px 44px 10px; border-radius: 40px; white-space: nowrap; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+  .badge small { font-size: 46px; margin-left: 8px; }
+  .card { width: 760px; margin-left: -380px; display: flex; align-items: center; gap: 28px;
+    background: rgba(255,255,255,.95); color: #18181f; font-weight: 800; font-size: 58px;
+    padding: 22px 34px; border-radius: 34px; box-shadow: 0 14px 34px rgba(0,0,0,.35); box-sizing: border-box; }
+  .card .n { width: 84px; height: 84px; border-radius: 50%; background: #5b7cff; color: #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 52px; flex: none; }
+  .card.bad { background: rgba(255,235,235,.95); text-decoration: line-through; text-decoration-color: #e5484d; text-decoration-thickness: 8px; }
+  .card.bad .n { background: #e5484d; }
+  .card.good .n { background: #2bb673; }
+  .mark { width: 230px; height: 230px; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; box-shadow: 0 14px 40px rgba(0,0,0,.4); }
+  .mark.ok { background: #2bb673; } .mark.no { background: #e5484d; }
+  .mark svg { width: 130px; height: 130px; }
+  .pill { font-weight: 900; font-size: 120px; color: #fff; padding: 10px 70px; border-radius: 80px;
+    box-shadow: 0 14px 40px rgba(0,0,0,.4); }
+  .pill.si { background: #2bb673; } .pill.no { background: #e5484d; }
+  .bubble { width: 250px; height: 200px; margin-left: -125px; background: #fff; border-radius: 60px;
+    display: flex; align-items: center; justify-content: center; gap: 22px; box-shadow: 0 14px 40px rgba(0,0,0,.4); }
+  .bubble::after { content: ''; position: absolute; left: 50px; bottom: -40px; border: 30px solid transparent;
+    border-top: 40px solid #fff; border-left: 10px solid #fff; }
+  .bubble i { width: 34px; height: 34px; border-radius: 50%; background: #5b7cff; display: block; }
+  .tag { background: #fff; color: #18181f; font-weight: 900; font-size: 64px; padding: 14px 40px;
+    border-radius: 24px; letter-spacing: 2px; box-shadow: 0 14px 40px rgba(0,0,0,.35); white-space: nowrap; }
+  .tag.warn { background: #ffcf3d; }
 </style>
 </head>
 <body>
 <div id="root">
   <svg id="stage" width="1080" height="1920" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg"></svg>
-  <div id="captions"></div>
+  <div id="overlay" style="position:absolute;inset:0;z-index:4;font-family:Inter,sans-serif"></div>
+  <div id="captions" style="z-index:5"></div>
   <div id="flash"></div>
 </div>
 <script src="core.js"></script>
 <script src="assets.js"></script>
+<script src="assets2.js"></script>
 </body>
 </html>
