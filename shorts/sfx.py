@@ -243,12 +243,24 @@ def load_audio(path):
     return np.frombuffer(pcm, dtype=np.float32).astype(np.float64)
 
 
+AMBIENT = {"waves", "heartbeat", "rumble", "projector", "bubbles", "riser"}
+
+
+def nivelar_voz(path):
+    """Sube las partes susurradas: normalizador dinámico (por ventanas) + limitador suave."""
+    pcm = subprocess.run(["ffmpeg", "-v", "error", "-i", path, "-af",
+                          "dynaudnorm=f=250:g=15:p=0.9:m=12:s=8:b=1,alimiter=limit=0.9",
+                          "-ac", "1", "-ar", str(SR), "-f", "f32le", "-"], capture_output=True, check=True).stdout
+    return np.frombuffer(pcm, dtype=np.float32).astype(np.float64)
+
+
 def mezclar(voz, dur, eventos, submarino, inicios, salida, musica=True, vol_musica=0.08):
     n = int((dur + 0.5) * SR)
-    v = load_audio(voz)
+    v = nivelar_voz(voz)
     voice = np.zeros(n)
     voice[: min(n, len(v))] = v[:n]
     fx = np.zeros(n)
+    amb = np.zeros(n)
     cache = {}
 
     def put(name, t, vol):
@@ -259,7 +271,7 @@ def mezclar(voz, dur, eventos, submarino, inicios, salida, musica=True, vol_musi
         if i >= n:
             return
         L = min(len(s), n - i)
-        fx[i:i + L] += s[:L]
+        (amb if name in AMBIENT else fx)[i:i + L] += s[:L]
 
     for t in inicios[1:]:
         put("whoosh", t - 0.25, 1)
@@ -269,20 +281,22 @@ def mezclar(voz, dur, eventos, submarino, inicios, salida, musica=True, vol_musi
             put("swoosh", e["t"] - 0.12, 0.6)
     # ambiente submarino
     if submarino:
-        amb = underwater(min(dur, 30)) * 0.25
+        a = underwater(min(dur, 30)) * 0.25
         mask = np.zeros(n)
-        for a, b in submarino:
-            mask[int(a * SR):int(b * SR)] = 1
+        for a0, b0 in submarino:
+            mask[int(a0 * SR):int(b0 * SR)] = 1
         k = int(0.25 * SR)
         mask = np.convolve(mask, np.ones(k) / k, mode="same")
-        reps = np.tile(amb, n // len(amb) + 1)[:n]
-        fx += reps * mask
-    mix = voice + fx
+        amb += np.tile(a, n // len(a) + 1)[:n] * mask
+    # actividad de la voz (0..1) para bajar efectos mientras habla
+    win = int(0.25 * SR)
+    env = np.convolve(np.abs(voice), np.ones(win) / win, mode="same")
+    act = np.clip(env / (np.percentile(env[env > 1e-4], 60) + 1e-9), 0, 1) if np.any(env > 1e-4) else env * 0
+    act = np.convolve(act, np.ones(win) / win, mode="same")
+    mix = voice + fx * (1 - 0.35 * act) + amb * (1 - 0.7 * act)
     if musica:
         bed = music_bed(dur + 0.5)[:n]
-        env = np.convolve(np.abs(voice), np.ones(int(0.3 * SR)) / int(0.3 * SR), mode="same")
-        duck = 1 - 0.55 * np.clip(env / (np.percentile(env, 95) + 1e-9), 0, 1)
-        mix += bed * vol_musica * duck
+        mix += bed * vol_musica * (1 - 0.6 * act)
     mix = mix / max(1.0, np.max(np.abs(mix)) / 0.97)
     pcm = (np.clip(mix, -1, 1) * 32767).astype(np.int16)
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "s16le", "-ar", str(SR), "-ac", "1", "-i", "-",
