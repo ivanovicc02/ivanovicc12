@@ -175,6 +175,16 @@
     for (let i = 0; i < chunks.length; i++) if (words[chunks[i][0]].start <= t + 0.02) ci = i;
     const last = words[words.length - 1];
     if (ci < 0 || t > last.end + 0.6) { el.innerHTML = ''; return; }
+    if (P.brand && P.brand.subtitulos_modo === 'palabra') {
+      let wi = -1;
+      for (let i = 0; i < words.length; i++) if (words[i].start <= t + 0.02) wi = i;
+      const w = words[wi];
+      if (!w || t > w.end + 0.5 && (wi + 1 >= words.length || words[wi + 1].start > t + 0.5)) { el.innerHTML = ''; return; }
+      const pop = ease.back(clamp((t - w.start) / 0.14, 0, 1));
+      const txt = w.w.replace(/["«»“”]/g, '');
+      el.innerHTML = `<span class="w1${w.hl ? ' hl1' : ''}" style="transform:scale(${(0.7 + 0.3 * pop).toFixed(3)})">${esc(txt)}</span>`;
+      return;
+    }
     const ch = chunks[ci];
     let html = '', nowIdx = -1;
     ch.forEach((wi) => { if (words[wi].start <= t + 0.02) nowIdx = wi; });
@@ -301,23 +311,42 @@
     const u = ease.back(clamp((lt - at) / 0.3, 0, 1));
     ovList.push(`<div class="ov" style="top:${y}px;transform:scale(${u.toFixed(3)})">${html}</div>`);
   };
+  H2.bignum = (num, label = '', y = 420, lt = 0, at = 0) => H2.ov(`<div class="bignum">${num}${label ? `<div class="bnl">${label}</div>` : ''}</div>`, y, lt, at);
   H2.MARK_OK = '<div class="mark ok"><svg viewBox="-60 -60 120 120"><path d="M-36 2 L-8 30 L40 -28" stroke="#fff" stroke-width="20" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>';
   H2.MARK_NO = '<div class="mark no"><svg viewBox="-60 -60 120 120"><path d="M-32 -32 L32 32 M32 -32 L-32 32" stroke="#fff" stroke-width="20" stroke-linecap="round"/></svg></div>';
   // envoltorio: dibuja un asset en (x, y) con escala s
-  H2.at = (x, y, s, inner, rot = 0, op = 1) => `<g transform="translate(${x.toFixed(1)},${y.toFixed(1)}) rotate(${rot.toFixed(2)}) scale(${s.toFixed(4)})" opacity="${op}">${inner}</g>`;
+  H2.at = (x, y, s, inner, rot = 0, op = 1, stk = false) => {
+    const g = `<g transform="translate(${x.toFixed(1)},${y.toFixed(1)}) rotate(${rot.toFixed(2)}) scale(${s.toFixed(4)})" opacity="${op}">${inner}</g>`;
+    return stk ? `<g filter="url(#stk)">${g}</g>` : g;
+  };
+  const STK_DEF = `<defs><filter id="stk" x="-15%" y="-15%" width="130%" height="130%"><feMorphology in="SourceAlpha" operator="dilate" radius="6" result="d"/><feFlood flood-color="#1b1426"/><feComposite in2="d" operator="in" result="o"/><feMerge><feMergeNode in="o"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
+  // 4) "cortes" automáticos: alterna plano abierto / primer plano en cada frase
+  function sentencePunch(t, sc) {
+    if (!P.brand || !P.brand.cortes_auto) return 1;
+    const ws = P.words; let k = 0, last = sc.start;
+    for (let i = 1; i < ws.length; i++) {
+      if (ws[i].start > t) break;
+      if (ws[i].start >= sc.start && /[.?!:…,]$/.test(ws[i - 1].w) && ws[i].start - last > 1.2) { k++; last = ws[i].start; }
+    }
+    const target = k % 2 ? 1.16 : 1.0;
+    const prev = k % 2 ? 1.0 : 1.16;
+    const u = ease.out(clamp((t - last) / 0.22, 0, 1));
+    return k === 0 ? 1 : lerp(prev, target, u);
+  }
   H2.cam = (a, b, u, e = 'inOut') => { const k = ease[e](clamp(u, 0, 1)); return [lerp(a[0], b[0], k), lerp(a[1], b[1], k), lerp(a[2], b[2], k)]; };
 
   function renderShot2D(fn, sc, lt, dur, t, svg) {
     H2.s0 = sc.start; ovList = [];
     const r = fn(H2, lt, dur, t) || {};
     let [cx, cy, z] = r.cam || [540, 960, 1];
+    if (r.autoCut !== false) z *= sentencePunch(t, sc);
     if (sc.punch !== false && r.punch !== false) z *= 1 + 0.05 * (1 - ease.out(clamp(lt / 0.3, 0, 1)));
     if (r.shake) { cx += Math.sin(t * 53) * r.shake; cy += Math.cos(t * 47) * r.shake; }
     const bg = r.bg ? (BACKGROUNDS[r.bg] || BACKGROUNDS.forest)(t) : '';
     let overlay = particles(t, r.particles || 'fireflies');
     if (r.vignette !== false) overlay += `<defs><radialGradient id="vg" cx="0.5" cy="0.5" r="0.75"><stop offset="0.6" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.45"/></radialGradient></defs><rect width="${W}" height="${H}" fill="url(#vg)"/>`;
     if (window.DRY) { renderBrand(t); return; }
-    svg.innerHTML = `<g transform="translate(${W / 2},${H / 2}) scale(${z.toFixed(4)}) translate(${(-cx).toFixed(1)},${(-cy).toFixed(1)})">${bg}${r.world || ''}</g>${r.screen || ''}${overlay}`;
+    svg.innerHTML = `${STK_DEF}<g transform="translate(${W / 2},${H / 2}) scale(${z.toFixed(4)}) translate(${(-cx).toFixed(1)},${(-cy).toFixed(1)})">${bg}${r.world || ''}</g>${r.screen || ''}${overlay}`;
     svg.style.filter = r.filter || '';
     const ov = document.getElementById('overlay'); if (ov) ov.innerHTML = ovList.join('');
     const fl = document.getElementById('flash');

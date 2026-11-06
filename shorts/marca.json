@@ -4,6 +4,8 @@
   "logo": "logo.png",
   "cierre": 2.6,
   "marca_agua": false,
-  "subtitulos_y": 1150,
-  "marca_agua_y": 150
+  "subtitulos_y": 1180,
+  "marca_agua_y": 150,
+  "subtitulos_modo": "palabra",
+  "cortes_auto": true
 }
