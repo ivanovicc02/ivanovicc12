@@ -84,6 +84,13 @@
     if (style === 'curly') for (let i = 0; i < 9; i++) { const a = Math.PI * (1.05 + i * 0.112); s += `<circle cx="${(Math.cos(a) * R * 0.92).toFixed(0)}" cy="${(cy + Math.sin(a) * R * 0.92).toFixed(0)}" r="30" fill="${hairC}"/>`; }
     if (style === 'wild') { for (let i = 0; i < 14; i++) { const ang = Math.PI * (0.85 + i * 0.1); const rr = R * (1.02 + (i % 3) * 0.1); s += `<circle cx="${(Math.cos(ang) * rr).toFixed(0)}" cy="${(cy + Math.sin(ang) * rr * 0.95).toFixed(0)}" r="${26 + (i % 4) * 6}" fill="${hairC}"/>`; } [-1, 1].forEach((k) => (s += `<circle cx="${k * (R + 8)}" cy="${cy + 6}" r="34" fill="${hairC}"/><circle cx="${k * (R + 22)}" cy="${cy - 30}" r="28" fill="${hairC}"/>`)); }
     if (style === 'bald') [-1, 1].forEach((k) => (s += `<path d="M${k * (R - 2)} ${cy + 10} Q${k * (R + 6)} ${cy - 30} ${k * (R - 22)} ${cy - 46}" stroke="${hairC}" stroke-width="16" fill="none" stroke-linecap="round"/>`));
+    if (mood === 'yawn') {
+      [-1, 1].forEach((k) => (s += `<path d="M${k * 30 - 15} ${cy - 2} q15 -12 30 0" stroke="#3a2418" stroke-width="6" fill="none" stroke-linecap="round"/>`));
+      const o = 0.7 + 0.3 * Math.abs(Math.sin(t * 1.4));
+      s += `<ellipse cx="0" cy="${cy + 48}" rx="26" ry="${(34 * o).toFixed(1)}" fill="#5a1f24"/><ellipse cx="0" cy="${cy + 60}" rx="14" ry="${(10 * o).toFixed(1)}" fill="#e57a7a"/>`;
+      [-1, 1].forEach((k) => (s += `<ellipse cx="${k * 52}" cy="${cy + 26}" rx="14" ry="9" fill="#f08080" opacity="0.35"/>`));
+      return s;
+    }
     if (mood === 'sleep') {
       [-1, 1].forEach((k) => (s += `<path d="M${k * 30 - 14} ${cy - 2} q14 12 28 0" stroke="#3a2418" stroke-width="6" fill="none" stroke-linecap="round"/>`));
       s += `<ellipse cx="0" cy="${cy + 44}" rx="9" ry="7" fill="#7a2a2a"/>`;
@@ -98,6 +105,7 @@
     [-1, 1].forEach((k) => {
       const ex = k * 30, ey = cy - 2;
       s += `<ellipse cx="${ex}" cy="${ey}" rx="${15 * eyeR}" ry="${(19 * eyeR * blink).toFixed(1)}" fill="#fff"/>`;
+      if (mood === 'tired') s += `<path d="M${ex - 17} ${ey - 20} h34 v18 h-34Z" fill="${skin}"/><path d="M${ex - 17} ${ey - 2} h34" stroke="#3a2418" stroke-width="5" stroke-linecap="round"/><path d="M${ex - 13} ${ey + 22} q13 8 26 0" stroke="#8a5a7a" stroke-width="5" fill="none" opacity="0.6"/>`;
       if (blink > 0.5) {
         s += `<circle cx="${(ex + look[0] * 6).toFixed(1)}" cy="${(ey + look[1] * 6 + 1).toFixed(1)}" r="${mood === 'scared' ? 7 : 10}" fill="#1d1d24"/>`;
         s += `<circle cx="${(ex + look[0] * 6 + 3).toFixed(1)}" cy="${(ey + look[1] * 6 - 3).toFixed(1)}" r="3.2" fill="#fff"/>`;

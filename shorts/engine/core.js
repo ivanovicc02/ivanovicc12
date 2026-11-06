@@ -317,9 +317,20 @@
   // envoltorio: dibuja un asset en (x, y) con escala s
   H2.at = (x, y, s, inner, rot = 0, op = 1, stk = false) => {
     const g = `<g transform="translate(${x.toFixed(1)},${y.toFixed(1)}) rotate(${rot.toFixed(2)}) scale(${s.toFixed(4)})" opacity="${op}">${inner}</g>`;
-    return stk ? `<g filter="url(#stk)">${g}</g>` : g;
+    return stk ? `<g filter="url(#${stk === 'vol' ? 'vol' : 'stk'})">${g}</g>` : g;
   };
-  const STK_DEF = `<defs><filter id="stk" x="-15%" y="-15%" width="130%" height="130%"><feMorphology in="SourceAlpha" operator="dilate" radius="6" result="d"/><feFlood flood-color="#1b1426"/><feComposite in2="d" operator="in" result="o"/><feMerge><feMergeNode in="o"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
+  // volumen "3D": luz difusa + brillo especular a partir de la silueta, más contorno
+  const VOL_DEF = `<filter id="vol" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">
+    <feGaussianBlur in="SourceAlpha" stdDeviation="16" result="b"/>
+    <feDiffuseLighting in="b" surfaceScale="7" diffuseConstant="1.05" lighting-color="#ffffff" result="dif"><feDistantLight azimuth="235" elevation="48"/></feDiffuseLighting>
+    <feComposite in="dif" in2="SourceAlpha" operator="in" result="difIn"/>
+    <feBlend in="SourceGraphic" in2="difIn" mode="multiply" result="sh"/>
+    <feSpecularLighting in="b" surfaceScale="7" specularConstant="0.75" specularExponent="22" lighting-color="#ffffff" result="spe"><feDistantLight azimuth="235" elevation="52"/></feSpecularLighting>
+    <feComposite in="spe" in2="SourceAlpha" operator="in" result="speIn"/>
+    <feComposite in="sh" in2="speIn" operator="arithmetic" k2="1" k3="0.55" result="lit"/>
+    <feMorphology in="SourceAlpha" operator="dilate" radius="5" result="d"/><feFlood flood-color="#1b1426"/><feComposite in2="d" operator="in" result="o"/>
+    <feMerge><feMergeNode in="o"/><feMergeNode in="lit"/></feMerge></filter>`;
+  const STK_DEF = `<defs><filter id="stk" x="-15%" y="-15%" width="130%" height="130%"><feMorphology in="SourceAlpha" operator="dilate" radius="6" result="d"/><feFlood flood-color="#1b1426"/><feComposite in2="d" operator="in" result="o"/><feMerge><feMergeNode in="o"/><feMergeNode in="SourceGraphic"/></feMerge></filter>${VOL_DEF}</defs>`;
   // 4) "cortes" automáticos: alterna plano abierto / primer plano en cada frase
   function sentencePunch(t, sc) {
     if (!P.brand || !P.brand.cortes_auto) return 1;

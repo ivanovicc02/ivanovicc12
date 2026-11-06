@@ -70,6 +70,8 @@
     carne: () => `<path d="M-120 -40 Q-130 -100 -40 -100 Q80 -110 120 -30 Q140 60 40 80 Q-110 100 -120 -40Z" fill="#d9534f"/><path d="M-80 -40 Q0 -70 80 -20" stroke="#f6dcd0" stroke-width="12" fill="none"/><circle cx="60" cy="10" r="22" fill="#f6efe0"/>`,
     vitaminas: () => `<rect x="-80" y="-120" width="160" height="220" rx="20" fill="#ff9a4a"/><rect x="-90" y="-150" width="180" height="50" rx="14" fill="#fff"/><text y="20" text-anchor="middle" font-family="Inter" font-weight="900" font-size="60" fill="#fff">C</text>`,
   };
+  const _item = A.item;
+  A.item = function (p, c) { const r = _item(p, c); if (r) return r; if (A.junk) return A.junk(p, c); return ''; };
   A.food = function (p, c) { return (FRUIT[p.kind] || (() => ''))(p, c); };
 
   // etiqueta de precio que sube
