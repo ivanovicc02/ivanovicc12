@@ -204,6 +204,38 @@ def creak(d=0.9):
     return _norm(_bp(s, 300, 2500) * np.sin(np.pi * t / d), 0.5)
 
 
+def bee(d=1.6):
+    t = _t(d)
+    f = 230 + 25 * np.sin(2 * np.pi * 3.1 * t) + 10 * np.sin(2 * np.pi * 7.3 * t)
+    ph = 2 * np.pi * np.cumsum(f) / SR
+    s = np.sign(np.sin(ph)) * 0.5 + np.sin(2 * ph) * 0.3
+    s = _bp(s, 180, 2500) * (0.6 + 0.4 * np.sin(2 * np.pi * 9 * t) ** 2)
+    return _norm(s * np.minimum(1, t * 8) * np.minimum(1, (d - t) * 8), 0.45)
+
+
+def ching():
+    t = _t(0.9)
+    s = sum(a * np.sin(2 * np.pi * f * t) * np.exp(-t * k) for f, a, k in [(2093, 1, 6), (2637, 0.7, 7), (3136, 0.5, 9), (4186, 0.3, 12)])
+    click = _hp(_noise(0.9), 3000) * np.exp(-t * 80) * 0.6
+    return _norm(s + click, 0.55)
+
+
+def wind(d=4.0):
+    t = _t(d)
+    n = _bp(_noise(d), 250, 1200)
+    env = 0.4 + 0.6 * np.sin(np.pi * t / d) * (0.7 + 0.3 * np.sin(2 * np.pi * 0.7 * t))
+    return _norm(n * env, 0.5)
+
+
+def moo(d=1.4):
+    t = _t(d)
+    f = 110 + 25 * np.sin(np.pi * t / d) - 15 * (t / d)
+    ph = 2 * np.pi * np.cumsum(f) / SR
+    s = sum(np.sin(k * ph) / k for k in range(1, 9))
+    s = _bp(s, 150, 900) * np.sin(np.pi * np.clip(t / d, 0, 1)) ** 0.7
+    return _norm(s, 0.6)
+
+
 def step():
     t = _t(0.18)
     return _norm(_lp(_noise(0.18), 900) * np.exp(-t * 35) + 0.5 * np.sin(2 * np.pi * 80 * t) * np.exp(-t * 30), 0.6)
@@ -212,10 +244,11 @@ def step():
 SOUNDS = {"whoosh": whoosh, "pop": pop, "ding": ding, "buzz": buzz, "splash": splash, "glass": glass,
           "hit": hit, "boom": boom, "bubbles": bubbles, "riser": riser, "tick": tick,
           "squelch": squelch, "waves": waves, "heartbeat": heartbeat, "projector": projector, "drip": drip,
-          "swoosh": swoosh, "rumble": rumble, "step": step, "hiss": hiss, "creak": creak}
+          "swoosh": swoosh, "rumble": rumble, "step": step, "hiss": hiss, "creak": creak,
+          "bee": bee, "ching": ching, "wind": wind, "moo": moo}
 GAIN = {"whoosh": 0.35, "pop": 0.32, "ding": 0.4, "buzz": 0.35, "splash": 0.6, "glass": 0.5, "hit": 0.55,
         "boom": 0.6, "bubbles": 0.35, "riser": 0.35, "tick": 0.3, "squelch": 0.6, "waves": 0.35,
-        "heartbeat": 0.7, "projector": 0.3, "drip": 0.35, "swoosh": 0.3, "rumble": 0.6, "step": 0.4, "hiss": 0.25, "creak": 0.4}
+        "heartbeat": 0.7, "projector": 0.3, "drip": 0.35, "swoosh": 0.3, "rumble": 0.6, "step": 0.4, "hiss": 0.25, "creak": 0.4, "bee": 0.35, "ching": 0.45, "wind": 0.4, "moo": 0.5}
 
 
 def music_bed(d, mood="tension"):
@@ -255,7 +288,7 @@ def load_audio(path):
     return np.frombuffer(pcm, dtype=np.float32).astype(np.float64)
 
 
-AMBIENT = {"hiss", "waves", "heartbeat", "rumble", "projector", "bubbles", "riser"}
+AMBIENT = {"bee", "wind", "hiss", "waves", "heartbeat", "rumble", "projector", "bubbles", "riser"}
 
 
 def nivelar_voz(path):

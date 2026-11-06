@@ -82,6 +82,7 @@
     if (style === 'short' || style === 'long' || style === 'bun') s += `<path d="M${-R - 4} ${cy + 4} Q${-R} ${cy - R - 14} 0 ${cy - R - 10} Q${R} ${cy - R - 14} ${R + 4} ${cy + 4} Q${R * 0.7} ${cy - R * 0.55} ${R * 0.1} ${cy - R * 0.6} Q${-R * 0.3} ${cy - R * 0.3} ${-R - 4} ${cy + 4} Z" fill="${hairC}"/>`;
     if (style === 'spiky') { let d = `M${-R} ${cy - 10}`; for (let i = 0; i <= 8; i++) { const a = Math.PI + (i / 8) * Math.PI; d += ` L${(Math.cos(a) * (R + (i % 2 ? 30 : 4))).toFixed(0)} ${(cy + Math.sin(a) * (R + (i % 2 ? 30 : 4))).toFixed(0)}`; } s += `<path d="${d} L${R} ${cy - 10} Q0 ${cy - R * 0.5} ${-R} ${cy - 10}Z" fill="${hairC}"/>`; }
     if (style === 'curly') for (let i = 0; i < 9; i++) { const a = Math.PI * (1.05 + i * 0.112); s += `<circle cx="${(Math.cos(a) * R * 0.92).toFixed(0)}" cy="${(cy + Math.sin(a) * R * 0.92).toFixed(0)}" r="30" fill="${hairC}"/>`; }
+    if (style === 'wild') { for (let i = 0; i < 14; i++) { const ang = Math.PI * (0.85 + i * 0.1); const rr = R * (1.02 + (i % 3) * 0.1); s += `<circle cx="${(Math.cos(ang) * rr).toFixed(0)}" cy="${(cy + Math.sin(ang) * rr * 0.95).toFixed(0)}" r="${26 + (i % 4) * 6}" fill="${hairC}"/>`; } [-1, 1].forEach((k) => (s += `<circle cx="${k * (R + 8)}" cy="${cy + 6}" r="34" fill="${hairC}"/><circle cx="${k * (R + 22)}" cy="${cy - 30}" r="28" fill="${hairC}"/>`)); }
     if (style === 'bald') [-1, 1].forEach((k) => (s += `<path d="M${k * (R - 2)} ${cy + 10} Q${k * (R + 6)} ${cy - 30} ${k * (R - 22)} ${cy - 46}" stroke="${hairC}" stroke-width="16" fill="none" stroke-linecap="round"/>`));
     if (mood === 'sleep') {
       [-1, 1].forEach((k) => (s += `<path d="M${k * 30 - 14} ${cy - 2} q14 12 28 0" stroke="#3a2418" stroke-width="6" fill="none" stroke-linecap="round"/>`));
@@ -109,6 +110,7 @@
     });
     if (p.glasses) s += `<g stroke="#2a2a30" stroke-width="5" fill="#fff" fill-opacity="0.12"><circle cx="-30" cy="${cy - 2}" r="25"/><circle cx="30" cy="${cy - 2}" r="25"/><path d="M-5 ${cy - 4} h10" /></g>`;
     // nariz, mejillas, boca
+    if (p.mustache) s += `<path d="M-38 ${cy + 36} Q-20 ${cy + 18} 0 ${cy + 30} Q20 ${cy + 18} 38 ${cy + 36} Q20 ${cy + 46} 0 ${cy + 38} Q-20 ${cy + 46} -38 ${cy + 36}Z" fill="${p.mustache}"/>`;
     s += `<path d="M-4 ${cy + 14} Q4 ${cy + 24} -2 ${cy + 28}" stroke="${shade(skin, -0.22)}" stroke-width="4" fill="none" stroke-linecap="round"/>`;
     [-1, 1].forEach((k) => (s += `<ellipse cx="${k * 52}" cy="${cy + 26}" rx="14" ry="9" fill="#f08080" opacity="0.35"/>`));
     const my = cy + 44;
