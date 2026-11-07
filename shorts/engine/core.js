@@ -182,7 +182,8 @@
       if (!w || t > w.end + 0.5 && (wi + 1 >= words.length || words[wi + 1].start > t + 0.5)) { el.innerHTML = ''; return; }
       const pop = ease.back(clamp((t - w.start) / 0.14, 0, 1));
       const txt = w.w.replace(/["«»“”]/g, '');
-      el.innerHTML = `<span class="w1${w.hl ? ' hl1' : ''}" style="transform:scale(${(0.7 + 0.3 * pop).toFixed(3)})">${esc(txt)}</span>`;
+      const fs = Math.min(96, Math.floor(900 / (Math.max(1, txt.length) * 0.62)));
+      el.innerHTML = `<span class="w1${w.hl ? ' hl1' : ''}" style="font-size:${fs}px;transform:scale(${(0.7 + 0.3 * pop).toFixed(3)})">${esc(txt)}</span>`;
       return;
     }
     const ch = chunks[ci];
@@ -299,7 +300,15 @@
   H2.sfx = (name, at, vol = 1) => { window.SFXLOG[name + '@' + at.toFixed(2)] = { name, t: at, vol }; };
   let ovList = [];
   const ovSound = (html) => (html.includes('mark ok') ? 'ding' : html.includes('mark no') ? 'buzz' : 'pop');
+  const fitTag = (html) => {
+    if (!/class="(tag|pill)/.test(html)) return html;
+    const txt = html.replace(/<[^>]+>/g, ''), base = html.includes('pill') ? 120 : 64, maxCh = html.includes('pill') ? 7 : 22;
+    if (txt.length <= maxCh) return html;
+    const fs = Math.floor(base * maxCh / txt.length);
+    return html.replace(/^<div ([^>]*)>/, (m, attrs) => attrs.includes('style="') ? `<div ${attrs.replace('style="', `style="font-size:${fs}px;`)}>` : `<div ${attrs} style="font-size:${fs}px">`);
+  };
   H2.ov = function (html, y, lt, at, extra = '') {
+    html = fitTag(html);
     if (lt < at) return;
     H2.sfx(ovSound(html), H2.s0 + at, 0.7);
     const u = ease.back(clamp((lt - at) / 0.3, 0, 1));
@@ -311,7 +320,11 @@
     const u = ease.back(clamp((lt - at) / 0.3, 0, 1));
     ovList.push(`<div class="ov" style="top:${y}px;transform:scale(${u.toFixed(3)})">${html}</div>`);
   };
-  H2.bignum = (num, label = '', y = 420, lt = 0, at = 0) => H2.ov(`<div class="bignum">${num}${label ? `<div class="bnl">${label}</div>` : ''}</div>`, y, lt, at);
+  H2.bignum = (num, label = '', y = 420, lt = 0, at = 0) => {
+    const n = String(num), fs = Math.min(210, Math.floor(960 / (Math.max(1, n.length) * 0.66)));
+    const fl = Math.min(62, Math.floor(960 / (Math.max(1, label.length) * 0.62)));
+    return H2.ov(`<div class="bignum" style="font-size:${fs}px">${n}${label ? `<div class="bnl" style="font-size:${fl}px">${label}</div>` : ''}</div>`, y, lt, at);
+  };
   H2.MARK_OK = '<div class="mark ok"><svg viewBox="-60 -60 120 120"><path d="M-36 2 L-8 30 L40 -28" stroke="#fff" stroke-width="20" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>';
   H2.MARK_NO = '<div class="mark no"><svg viewBox="-60 -60 120 120"><path d="M-32 -32 L32 32 M32 -32 L-32 32" stroke="#fff" stroke-width="20" stroke-linecap="round"/></svg></div>';
   // envoltorio: dibuja un asset en (x, y) con escala s

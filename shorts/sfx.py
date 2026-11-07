@@ -248,7 +248,7 @@ SOUNDS = {"whoosh": whoosh, "pop": pop, "ding": ding, "buzz": buzz, "splash": sp
           "bee": bee, "ching": ching, "wind": wind, "moo": moo}
 GAIN = {"whoosh": 0.35, "pop": 0.32, "ding": 0.4, "buzz": 0.35, "splash": 0.6, "glass": 0.5, "hit": 0.55,
         "boom": 0.6, "bubbles": 0.35, "riser": 0.35, "tick": 0.3, "squelch": 0.6, "waves": 0.35,
-        "heartbeat": 0.7, "projector": 0.3, "drip": 0.35, "swoosh": 0.3, "rumble": 0.6, "step": 0.4, "hiss": 0.25, "creak": 0.4, "bee": 0.35, "ching": 0.45, "wind": 0.4, "moo": 0.5}
+        "heartbeat": 0.7, "projector": 0.3, "drip": 0.35, "swoosh": 0.3, "rumble": 0.6, "step": 0.4, "hiss": 0.25, "creak": 0.4, "bee": 0.35, "ching": 0.45, "wind": 0.4, "moo": 0.5, "dig": 0.5, "heli": 0.4, "drill": 0.35}
 
 
 def music_bed(d, mood="tension"):
@@ -277,6 +277,65 @@ def music_bed(d, mood="tension"):
     return _norm(out, 1) * 0.6 + pulse * 0.5
 
 
+def music_ritmo(d, bpm=100):
+    """Banda sonora con ritmo: bombo, hi-hat, bajo y acordes (La menor - Fa - Do - Sol)."""
+    t = _t(d)
+    n = len(t)
+    beat = 60 / bpm
+    out = np.zeros(n)
+    # acordes (pad) y bajo, 2 compases por acorde
+    prog = [(110, [220, 261.6, 329.6]), (87.3, [174.6, 220, 261.6]), (130.8, [261.6, 329.6, 392]), (98, [196, 246.9, 293.7])]
+    bar = beat * 4
+    k = 0
+    while k * bar * 2 < d:
+        root, ch = prog[k % 4]
+        a, b = int(k * bar * 2 * SR), min(n, int((k + 1) * bar * 2 * SR))
+        tt = np.arange(b - a) / SR
+        env = np.minimum(1, tt / 0.3) * np.minimum(1, (tt[-1] - tt + 1e-3) / 0.3)
+        pad = sum(np.sin(2 * np.pi * f * tt) + 0.4 * np.sin(2 * np.pi * f * 1.004 * tt) for f in ch) * env * 0.18
+        # bajo en corcheas
+        bass = np.zeros_like(tt)
+        for j in range(int(len(tt) / SR / (beat / 2))):
+            s0 = int(j * beat / 2 * SR); L = min(int(beat / 2 * 0.9 * SR), len(tt) - s0)
+            if L <= 0: break
+            tb = np.arange(L) / SR
+            f = root if j % 4 != 3 else root * 1.5
+            bass[s0:s0 + L] += np.sign(np.sin(2 * np.pi * f * tb)) * np.exp(-tb * 6) * 0.35
+        out[a:b] += _lp(pad, 1800) + _lp(bass, 600)
+        k += 1
+    # bombo y hi-hat
+    for i in range(int(d / beat) + 1):
+        a = int(i * beat * SR)
+        if a >= n: break
+        L = min(int(0.35 * SR), n - a); tk = np.arange(L) / SR
+        out[a:a + L] += np.sin(2 * np.pi * (50 + 90 * np.exp(-tk * 30)) * tk) * np.exp(-tk * 9) * 0.9
+        if i % 4 == 2:  # palmada en el 3
+            L2 = min(int(0.2 * SR), n - a); out[a:a + L2] += _bp(_noise(L2 / SR), 900, 4000)[:L2] * np.exp(-np.arange(L2) / SR * 25) * 0.35
+        for hh in (0.5,):
+            h = int((i + hh) * beat * SR)
+            if h < n:
+                L3 = min(int(0.06 * SR), n - h); out[h:h + L3] += _hp(_noise(L3 / SR), 7000)[:L3] * np.exp(-np.arange(L3) / SR * 80) * 0.25
+    return _norm(out, 1)
+
+
+def dig():
+    t = _t(0.35)
+    return _norm(_lp(_noise(0.35), 1500) * np.exp(-t * 14) + 0.6 * np.sin(2 * np.pi * 70 * t) * np.exp(-t * 20), 0.7)
+
+
+def heli(d=3.0):
+    t = _t(d)
+    chop = (0.5 + 0.5 * np.sign(np.sin(2 * np.pi * 13 * t))) * np.exp(-((t * 13) % 1) * 6)
+    s = _lp(_noise(d), 500) * chop + np.sin(2 * np.pi * 80 * t) * 0.2
+    return _norm(s * np.minimum(1, t * 2) * np.minimum(1, (d - t) * 2), 0.6)
+
+
+def drill(d=2.5):
+    t = _t(d)
+    s = np.sign(np.sin(2 * np.pi * 95 * t)) * 0.4 + _bp(_noise(d), 300, 2500) * 0.6
+    return _norm(s * (0.7 + 0.3 * np.sin(2 * np.pi * 7 * t)) * np.minimum(1, t * 6) * np.minimum(1, (d - t) * 6), 0.6)
+
+
 def underwater(d):
     n = _lp(_noise(d), 280, 4) * 4
     return _norm(n + bubbles(d) * 0.4, 0.5)
@@ -288,7 +347,7 @@ def load_audio(path):
     return np.frombuffer(pcm, dtype=np.float32).astype(np.float64)
 
 
-AMBIENT = {"bee", "wind", "hiss", "waves", "heartbeat", "rumble", "projector", "bubbles", "riser"}
+AMBIENT = {"heli", "drill", "bee", "wind", "hiss", "waves", "heartbeat", "rumble", "projector", "bubbles", "riser"}
 
 
 def nivelar_voz(path):
@@ -299,7 +358,7 @@ def nivelar_voz(path):
     return np.frombuffer(pcm, dtype=np.float32).astype(np.float64)
 
 
-def mezclar(voz, dur, eventos, submarino, inicios, salida, musica=True, vol_musica=0.08):
+def mezclar(voz, dur, eventos, submarino, inicios, salida, musica=True, vol_musica=0.08, estilo='pad'):
     n = int((dur + 0.5) * SR)
     v = nivelar_voz(voz)
     voice = np.zeros(n)
@@ -340,10 +399,13 @@ def mezclar(voz, dur, eventos, submarino, inicios, salida, musica=True, vol_musi
     act = np.convolve(act, np.ones(win) / win, mode="same")
     mix = voice + fx * (1 - 0.35 * act) + amb * (1 - 0.7 * act)
     if musica:
-        bed = music_bed(dur + 0.5)[:n]
+        bed = (music_ritmo(dur + 0.5) if estilo == 'ritmo' else music_bed(dur + 0.5))[:n]
         mix += bed * vol_musica * (1 - 0.6 * act)
     mix = mix / max(1.0, np.max(np.abs(mix)) / 0.97)
     pcm = (np.clip(mix, -1, 1) * 32767).astype(np.int16)
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "s16le", "-ar", str(SR), "-ac", "1", "-i", "-",
                     "-c:a", "pcm_s16le", salida], input=pcm.tobytes(), check=True)
     return salida
+
+
+SOUNDS.update({"dig": dig, "heli": heli, "drill": drill})

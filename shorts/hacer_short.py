@@ -118,7 +118,7 @@ def add_sfx(d, data_path, voice, render, cfg):
     inicios = [s["start"] for s in data["scenes"]]
     out = os.path.join(d, "_mezcla.wav")
     sfx.mezclar(voice, data["duration"], ev["sfx"], uw, inicios, out,
-                musica=cfg.get("cama_musical", True), vol_musica=cfg.get("volumen_cama", 0.08))
+                musica=cfg.get("cama_musical", True), vol_musica=cfg.get("volumen_cama", 0.08), estilo=cfg.get("musica_estilo", "pad"))
     print(f"[sonido] {len(ev['sfx'])} efectos, {len(uw)} tramos bajo el agua, {len(inicios) - 1} transiciones")
     return out
 
