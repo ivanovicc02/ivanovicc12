@@ -330,7 +330,8 @@
   // envoltorio: dibuja un asset en (x, y) con escala s
   H2.at = (x, y, s, inner, rot = 0, op = 1, stk = false) => {
     const g = `<g transform="translate(${x.toFixed(1)},${y.toFixed(1)}) rotate(${rot.toFixed(2)}) scale(${s.toFixed(4)})" opacity="${op}">${inner}</g>`;
-    return stk ? `<g filter="url(#${stk === 'vol' ? 'vol' : 'stk'})">${g}</g>` : g;
+    if (stk === 'bg') return P && P.realismo ? `<g filter="url(#bgT)">${g}</g>` : g;
+    return stk ? `<g filter="url(#${stk === 'vol' ? (P && P.realismo ? 'volT' : 'vol') : 'stk'})">${g}</g>` : g;
   };
   // volumen "3D": luz difusa + brillo especular a partir de la silueta, más contorno
   const VOL_DEF = `<filter id="vol" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">
@@ -343,6 +344,28 @@
     <feComposite in="sh" in2="speIn" operator="arithmetic" k2="1" k3="0.55" result="lit"/>
     <feMorphology in="SourceAlpha" operator="dilate" radius="5" result="d"/><feFlood flood-color="#1b1426"/><feComposite in2="d" operator="in" result="o"/>
     <feMerge><feMergeNode in="o"/><feMergeNode in="lit"/></feMerge></filter>`;
+  // modo realismo: textura en superficies, fondo desenfocado, grano de película y luz
+  const REAL_DEF = `<filter id="volT" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">
+    <feGaussianBlur in="SourceAlpha" stdDeviation="16" result="b"/>
+    <feDiffuseLighting in="b" surfaceScale="7" diffuseConstant="1.05" lighting-color="#fff6ea" result="dif"><feDistantLight azimuth="235" elevation="46"/></feDiffuseLighting>
+    <feComposite in="dif" in2="SourceAlpha" operator="in" result="difIn"/>
+    <feBlend in="SourceGraphic" in2="difIn" mode="multiply" result="sh"/>
+    <feSpecularLighting in="b" surfaceScale="7" specularConstant="0.7" specularExponent="24" lighting-color="#fffaf0" result="spe"><feDistantLight azimuth="235" elevation="52"/></feSpecularLighting>
+    <feComposite in="spe" in2="SourceAlpha" operator="in" result="speIn"/>
+    <feComposite in="sh" in2="speIn" operator="arithmetic" k2="1" k3="0.5" result="lit"/>
+    <feTurbulence type="fractalNoise" baseFrequency="0.55" numOctaves="4" seed="7" result="n"/>
+    <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+    <feComposite in="lit" in2="ng" operator="arithmetic" k2="1" k3="0.34" k4="-0.17" result="tex"/>
+    <feComposite in="tex" in2="SourceAlpha" operator="in" result="texIn"/>
+    <feMorphology in="SourceAlpha" operator="dilate" radius="4" result="d"/><feFlood flood-color="#1b1426"/><feComposite in2="d" operator="in" result="o"/>
+    <feGaussianBlur in="SourceAlpha" stdDeviation="10" result="sb"/><feOffset in="sb" dx="10" dy="16" result="so"/><feFlood flood-color="#000" flood-opacity="0.28"/><feComposite in2="so" operator="in" result="shadow"/>
+    <feMerge><feMergeNode in="shadow"/><feMergeNode in="o"/><feMergeNode in="texIn"/></feMerge></filter>
+    <filter id="bgT" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+    <feGaussianBlur in="SourceGraphic" stdDeviation="3.6" result="bl"/>
+    <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="4" seed="2" result="n"/><feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+    <feComposite in="bl" in2="ng" operator="arithmetic" k2="1" k3="0.3" k4="-0.15" result="b1"/><feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="2" seed="4" result="n2"/><feColorMatrix in="n2" type="saturate" values="0" result="ng2"/><feComposite in="b1" in2="ng2" operator="arithmetic" k2="1" k3="0.16" k4="-0.08"/></filter>
+    <filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="SEED"/><feColorMatrix type="saturate" values="0"/></filter>
+    <radialGradient id="leak" cx="0.15" cy="0.08" r="0.9"><stop offset="0" stop-color="#ffd9a0" stop-opacity="0.35"/><stop offset="0.5" stop-color="#ffd9a0" stop-opacity="0"/></radialGradient>`;
   const STK_DEF = `<defs><filter id="stk" x="-15%" y="-15%" width="130%" height="130%"><feMorphology in="SourceAlpha" operator="dilate" radius="6" result="d"/><feFlood flood-color="#1b1426"/><feComposite in2="d" operator="in" result="o"/><feMerge><feMergeNode in="o"/><feMergeNode in="SourceGraphic"/></feMerge></filter>${VOL_DEF}</defs>`;
   // 4) "cortes" automáticos: alterna plano abierto / primer plano en cada frase
   function sentencePunch(t, sc) {
@@ -370,8 +393,16 @@
     let overlay = particles(t, r.particles || 'fireflies');
     if (r.vignette !== false) overlay += `<defs><radialGradient id="vg" cx="0.5" cy="0.5" r="0.75"><stop offset="0.6" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.45"/></radialGradient></defs><rect width="${W}" height="${H}" fill="url(#vg)"/>`;
     if (window.DRY) { renderBrand(t); return; }
-    svg.innerHTML = `${STK_DEF}<g transform="translate(${W / 2},${H / 2}) scale(${z.toFixed(4)}) translate(${(-cx).toFixed(1)},${(-cy).toFixed(1)})">${bg}${r.world || ''}</g>${r.screen || ''}${overlay}`;
-    svg.style.filter = r.filter || '';
+    if (P.realismo) {
+      const seed = Math.floor(t * 24) % 50;
+      const defs = STK_DEF.replace('</defs>', REAL_DEF.replace('SEED', seed) + '</defs>');
+      const grain = `<rect width="${W}" height="${H}" filter="url(#grain)" opacity="0.1" style="mix-blend-mode:overlay"/><rect width="${W}" height="${H}" fill="url(#leak)" style="mix-blend-mode:screen"/>`;
+      svg.innerHTML = `${defs}<g transform="translate(${W / 2},${H / 2}) scale(${z.toFixed(4)}) translate(${(-cx).toFixed(1)},${(-cy).toFixed(1)})"><g filter="url(#bgT)">${bg}</g>${r.world || ''}</g>${r.screen || ''}${overlay}${grain}`;
+      svg.style.filter = ((r.filter || '') + ' contrast(1.07) saturate(1.12)').trim();
+    } else {
+      svg.innerHTML = `${STK_DEF}<g transform="translate(${W / 2},${H / 2}) scale(${z.toFixed(4)}) translate(${(-cx).toFixed(1)},${(-cy).toFixed(1)})">${bg}${r.world || ''}</g>${r.screen || ''}${overlay}`;
+      svg.style.filter = r.filter || '';
+    }
     const ov = document.getElementById('overlay'); if (ov) ov.innerHTML = ovList.join('');
     const fl = document.getElementById('flash');
     fl.style.background = r.flashColor || '#fff';

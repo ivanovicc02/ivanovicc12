@@ -3,7 +3,7 @@
   const A = window.ASSETS;
   const S = (window.SHOTS2D = {});
   const FLAT = new Set(['darkness', 'puff', 'sparkle', 'groundCut', 'dirtBurst']);
-  const P = (H, kind, x, y, s, p, lt, t, rot = 0, op = 1) => H.at(x, y, s, A[kind](p, { t, lt, dur: 1, u: 0 }), rot, op, FLAT.has(kind) ? false : 'vol');
+  const P = (H, kind, x, y, s, p, lt, t, rot = 0, op = 1) => H.at(x, y, s, A[kind](p, { t, lt, dur: 1, u: 0 }), rot, op, kind === 'groundCut' ? 'bg' : FLAT.has(kind) ? false : 'vol');
   const ICON = (H, kind, x, y, s, lt, at, t) => (lt > at ? H.at(x, y, s, A.icon({ kind, seed: x }, { t, lt: lt - at }), 0, 1, 'vol') : '');
   const W = (H, s0, w, after) => H.wt(w, after ?? s0) - s0;
   const big = (H, n, label, lt, t0, d = 2.0) => H.bignum(n, label, 210, lt < t0 + d ? lt : -1, t0);

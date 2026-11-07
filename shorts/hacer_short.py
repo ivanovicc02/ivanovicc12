@@ -81,7 +81,7 @@ def build(d, method="auto"):
     if not scenes:
         raise SystemExit("El guion no tiene marcas de escena [1], [2]...")
     extra = [os.path.abspath(p) for p in glob.glob(os.path.join(d, "*.js"))]
-    data = {"duration": total, "words": al["words"], "scenes": scenes, "extraAssets": extra, "brand": marca}
+    data = {"duration": total, "words": al["words"], "scenes": scenes, "extraAssets": extra, "brand": marca, "realismo": bool(cfg.get("realismo", False))}
     if cfg.get("motor") == "3d":
         data["page"] = os.path.join(HERE, "engine3d", "index.html")
     path = os.path.join(d, "data.json")
