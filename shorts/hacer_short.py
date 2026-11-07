@@ -128,6 +128,7 @@ def main():
     ap.add_argument("proyecto")
     ap.add_argument("--preview", help="tiempos en segundos separados por comas")
     ap.add_argument("--fps", type=int, default=30)
+    ap.add_argument("--procesos", type=int, default=1)
     ap.add_argument("--voz-prueba", action="store_true")
     ap.add_argument("--metodo", default="auto", choices=["auto", "whisper", "silencios"])
     a = ap.parse_args()
@@ -144,7 +145,7 @@ def main():
     elif cfg.get("sonidos", True):
         audio = add_sfx(d, data, audio, render, cfg)
     out = os.path.join(d, cfg.get("salida", "short.mp4"))
-    subprocess.run(["node", render, data, out, "--fps", str(a.fps), "--audio", audio], check=True)
+    subprocess.run(["node", render, data, out, "--fps", str(a.fps), "--audio", audio, "--workers", str(a.procesos)], check=True)
 
 
 if __name__ == "__main__":

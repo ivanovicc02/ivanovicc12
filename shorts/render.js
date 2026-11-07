@@ -50,16 +50,40 @@ function arg(name, def) {
   }
 
   const total = Math.ceil(data.duration * fps);
+  const workers = Number(arg('workers', 1));
+  const range = arg('range', null);
+  if (workers > 1 && !range) {
+    // render en paralelo: N procesos, cada uno con un tramo de fotogramas; luego se unen y se añade el audio
+    await browser.close();
+    const chunk = Math.ceil(total / workers), segs = [];
+    const t0 = Date.now();
+    await Promise.all([...Array(workers)].map((_, k) => new Promise((res, rej) => {
+      const a = k * chunk, b = Math.min(total, (k + 1) * chunk), seg = out.replace(/\.mp4$/, `_part${k}.mp4`);
+      segs[k] = seg;
+      const ch = spawn(process.execPath, [__filename, dataPath, seg, '--fps', String(fps), '--range', `${a}:${b}`], { stdio: ['ignore', 'inherit', 'inherit'] });
+      ch.on('close', (code) => (code === 0 ? res() : rej(new Error('worker ' + k + ' falló'))));
+    })));
+    const list = out.replace(/\.mp4$/, '_parts.txt');
+    fs.writeFileSync(list, segs.map((p) => `file '${p}'`).join('\n'));
+    const args = ['-y', '-hide_banner', '-loglevel', 'error', '-f', 'concat', '-safe', '0', '-i', list];
+    if (audio) args.push('-i', audio, '-map', '0:v', '-map', '1:a', '-af', 'apad', '-c:a', 'aac', '-b:a', '192k', '-shortest');
+    args.push('-c:v', 'copy', '-movflags', '+faststart', out);
+    await new Promise((r) => spawn('ffmpeg', args, { stdio: 'inherit' }).on('close', r));
+    segs.forEach((p) => fs.unlinkSync(p)); fs.unlinkSync(list);
+    console.log(`\nlisto: ${out} en ${((Date.now() - t0) / 1000).toFixed(0)}s (${workers} procesos)`);
+    return;
+  }
+  const [fromF, toF] = range ? range.split(':').map(Number) : [0, total];
   const ffArgs = ['-y', '-hide_banner', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-i', '-'];
-  if (audio) ffArgs.push('-i', audio);
+  if (audio && !range) ffArgs.push('-i', audio);
   ffArgs.push('-c:v', 'libx264', '-preset', 'medium', '-crf', '19', '-pix_fmt', 'yuv420p', '-r', String(fps));
-  if (audio) ffArgs.push('-af', 'apad', '-c:a', 'aac', '-b:a', '192k', '-shortest');
+  if (audio && !range) ffArgs.push('-af', 'apad', '-c:a', 'aac', '-b:a', '192k', '-shortest');
   ffArgs.push('-movflags', '+faststart', out);
   const ff = spawn('ffmpeg', ffArgs, { stdio: ['pipe', 'inherit', 'inherit'] });
   let ffDone = false;
   ff.on('close', () => (ffDone = true));
   const t0 = Date.now();
-  for (let i = 0; i < total && !ffDone; i++) {
+  for (let i = fromF; i < toF && !ffDone; i++) {
     await page.evaluate((t) => window.renderAt(t), i / fps);
     const buf = await page.screenshot({ type: 'jpeg', quality: 92 });
     if (!ff.stdin.write(buf)) await new Promise((r) => { ff.stdin.once('drain', r); ff.once('close', r); });

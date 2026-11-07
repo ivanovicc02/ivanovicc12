@@ -344,6 +344,31 @@
     <feComposite in="sh" in2="speIn" operator="arithmetic" k2="1" k3="0.55" result="lit"/>
     <feMorphology in="SourceAlpha" operator="dilate" radius="5" result="d"/><feFlood flood-color="#1b1426"/><feComposite in2="d" operator="in" result="o"/>
     <feMerge><feMergeNode in="o"/><feMergeNode in="lit"/></feMerge></filter>`;
+  // texturas de ruido precalculadas (una vez) para el modo realismo
+  function makeNoise(size, cell, octaves, seed) {
+    const c = document.createElement('canvas'); c.width = c.height = size;
+    const x = c.getContext('2d'), img = x.createImageData(size, size), r = rng(seed);
+    const acc = new Float32Array(size * size);
+    let amp = 1, tot = 0;
+    for (let o = 0; o < octaves; o++) {
+      const g = Math.max(1, Math.round(size / cell)), grid = [];
+      for (let i = 0; i <= g; i++) { grid.push([]); for (let j = 0; j <= g; j++) grid[i].push(r()); }
+      for (let i = 0; i <= g; i++) grid[i][g] = grid[i][0];
+      for (let j = 0; j <= g; j++) grid[g][j] = grid[0][j];
+      for (let y = 0; y < size; y++) for (let xx = 0; xx < size; xx++) {
+        const fx = xx / size * g, fy = y / size * g, ix = Math.floor(fx), iy = Math.floor(fy), tx = fx - ix, ty = fy - iy;
+        const sx = tx * tx * (3 - 2 * tx), sy = ty * ty * (3 - 2 * ty);
+        const v = lerp(lerp(grid[iy][ix], grid[iy][ix + 1], sx), lerp(grid[iy + 1][ix], grid[iy + 1][ix + 1], sx), sy);
+        acc[y * size + xx] += v * amp;
+      }
+      tot += amp; amp *= 0.5; cell /= 2;
+    }
+    for (let i = 0; i < size * size; i++) { const v = Math.round(acc[i] / tot * 255); img.data[i * 4] = img.data[i * 4 + 1] = img.data[i * 4 + 2] = v; img.data[i * 4 + 3] = 255; }
+    x.putImageData(img, 0, 0);
+    return c.toDataURL('image/png');
+  }
+  let NOISE = null;
+  function noise() { return NOISE || (NOISE = { fine: makeNoise(256, 16, 3, 7), coarse: makeNoise(512, 128, 4, 2), grain: makeNoise(256, 1, 1, 9) }); }
   // modo realismo: textura en superficies, fondo desenfocado, grano de película y luz
   const REAL_DEF = `<filter id="volT" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">
     <feGaussianBlur in="SourceAlpha" stdDeviation="16" result="b"/>
@@ -353,8 +378,7 @@
     <feSpecularLighting in="b" surfaceScale="7" specularConstant="0.7" specularExponent="24" lighting-color="#fffaf0" result="spe"><feDistantLight azimuth="235" elevation="52"/></feSpecularLighting>
     <feComposite in="spe" in2="SourceAlpha" operator="in" result="speIn"/>
     <feComposite in="sh" in2="speIn" operator="arithmetic" k2="1" k3="0.5" result="lit"/>
-    <feTurbulence type="fractalNoise" baseFrequency="0.55" numOctaves="4" seed="7" result="n"/>
-    <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+    <feImage href="NFINE" x="0" y="0" width="256" height="256" result="t0"/><feTile in="t0" result="ng"/>
     <feComposite in="lit" in2="ng" operator="arithmetic" k2="1" k3="0.34" k4="-0.17" result="tex"/>
     <feComposite in="tex" in2="SourceAlpha" operator="in" result="texIn"/>
     <feMorphology in="SourceAlpha" operator="dilate" radius="4" result="d"/><feFlood flood-color="#1b1426"/><feComposite in2="d" operator="in" result="o"/>
@@ -362,9 +386,9 @@
     <feMerge><feMergeNode in="shadow"/><feMergeNode in="o"/><feMergeNode in="texIn"/></feMerge></filter>
     <filter id="bgT" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
     <feGaussianBlur in="SourceGraphic" stdDeviation="3.6" result="bl"/>
-    <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="4" seed="2" result="n"/><feColorMatrix in="n" type="saturate" values="0" result="ng"/>
-    <feComposite in="bl" in2="ng" operator="arithmetic" k2="1" k3="0.3" k4="-0.15" result="b1"/><feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="2" seed="4" result="n2"/><feColorMatrix in="n2" type="saturate" values="0" result="ng2"/><feComposite in="b1" in2="ng2" operator="arithmetic" k2="1" k3="0.16" k4="-0.08"/></filter>
-    <filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="SEED"/><feColorMatrix type="saturate" values="0"/></filter>
+    <feImage href="NCOARSE" x="0" y="0" width="512" height="512" result="t1"/><feTile in="t1" result="ng"/>
+    <feComposite in="bl" in2="ng" operator="arithmetic" k2="1" k3="0.3" k4="-0.15" result="b1"/><feImage href="NFINE" x="0" y="0" width="256" height="256" result="t2"/><feTile in="t2" result="ng2"/><feComposite in="b1" in2="ng2" operator="arithmetic" k2="1" k3="0.16" k4="-0.08"/></filter>
+    <pattern id="grainP" patternUnits="userSpaceOnUse" width="256" height="256" x="GX" y="GY"><image href="NGRAIN" width="256" height="256"/></pattern>
     <radialGradient id="leak" cx="0.15" cy="0.08" r="0.9"><stop offset="0" stop-color="#ffd9a0" stop-opacity="0.35"/><stop offset="0.5" stop-color="#ffd9a0" stop-opacity="0"/></radialGradient>`;
   const STK_DEF = `<defs><filter id="stk" x="-15%" y="-15%" width="130%" height="130%"><feMorphology in="SourceAlpha" operator="dilate" radius="6" result="d"/><feFlood flood-color="#1b1426"/><feComposite in2="d" operator="in" result="o"/><feMerge><feMergeNode in="o"/><feMergeNode in="SourceGraphic"/></feMerge></filter>${VOL_DEF}</defs>`;
   // 4) "cortes" automáticos: alterna plano abierto / primer plano en cada frase
@@ -394,9 +418,9 @@
     if (r.vignette !== false) overlay += `<defs><radialGradient id="vg" cx="0.5" cy="0.5" r="0.75"><stop offset="0.6" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.45"/></radialGradient></defs><rect width="${W}" height="${H}" fill="url(#vg)"/>`;
     if (window.DRY) { renderBrand(t); return; }
     if (P.realismo) {
-      const seed = Math.floor(t * 24) % 50;
-      const defs = STK_DEF.replace('</defs>', REAL_DEF.replace('SEED', seed) + '</defs>');
-      const grain = `<rect width="${W}" height="${H}" filter="url(#grain)" opacity="0.1" style="mix-blend-mode:overlay"/><rect width="${W}" height="${H}" fill="url(#leak)" style="mix-blend-mode:screen"/>`;
+      const nz = noise(), fr = Math.floor(t * 24);
+      const defs = STK_DEF.replace('</defs>', REAL_DEF.split('NFINE').join(nz.fine).split('NCOARSE').join(nz.coarse).replace('NGRAIN', nz.grain).replace('GX', (fr * 97) % 256).replace('GY', (fr * 61) % 256) + '</defs>');
+      const grain = `<rect width="${W}" height="${H}" fill="url(#grainP)" opacity="0.1" style="mix-blend-mode:overlay"/><rect width="${W}" height="${H}" fill="url(#leak)" style="mix-blend-mode:screen"/>`;
       svg.innerHTML = `${defs}<g transform="translate(${W / 2},${H / 2}) scale(${z.toFixed(4)}) translate(${(-cx).toFixed(1)},${(-cy).toFixed(1)})"><g filter="url(#bgT)">${bg}</g>${r.world || ''}</g>${r.screen || ''}${overlay}${grain}`;
       svg.style.filter = ((r.filter || '') + ' contrast(1.07) saturate(1.12)').trim();
     } else {
