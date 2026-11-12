@@ -80,3 +80,20 @@ python hacer_short.py proyectos/coche_agua_comentarios
 
 Si el audio es de ElevenLabs puedes usar su texto tal cual como `guion.txt`: las etiquetas
 `[serious]`, `[short pause]`... se ignoran y las palabras en MAYÚSCULAS salen resaltadas.
+
+## Proyecto especial: ¿Qué pasaría si el Sol explotara? (Monterrey)
+
+`shorts/proyectos/sol_monterrey/` es un video sin voz, al estilo "qué pasaría si…": vista desde
+una azotea hacia la Macroplaza, el Faro del Comercio, el Paseo Santa Lucía y el Cerro de la Silla,
+con contadores en pantalla (llegada de la luz, brillo, temperatura, onda expansiva), subtítulos
+en español y sonido ambiental sintetizado (`sonido.py`). La escena es `escena.html` + `sol.js`
+(three.js) y todo depende solo del tiempo, así que se puede renderizar en paralelo.
+
+```bash
+cd shorts/engine3d && npm install
+cd ../proyectos/sol_monterrey
+python hacer.py --preview 2,30,55,66     # PNG en preview/
+python hacer.py --procesos 4            # -> sol_monterrey.mp4 (80 s, 1080x1920)
+```
+
+Los textos y tiempos están en `CAPS` y `TL` al principio de `sol.js`.

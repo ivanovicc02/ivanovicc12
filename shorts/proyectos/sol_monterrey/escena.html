@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; padding: 0; background: #000; overflow: hidden; }
+  #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+  #gl { position: absolute; inset: 0; width: 1080px; height: 1920px; }
+  .layer { position: absolute; inset: 0; pointer-events: none; }
+  #sunglow { mix-blend-mode: screen; }
+  #dust { background: radial-gradient(ellipse at 50% 40%, #e2a865 0%, #b9773f 70%, #8a5228 100%); opacity: 0; }
+  #vig { background: radial-gradient(ellipse at center, rgba(0,0,0,0) 60%, rgba(0,0,0,.35) 100%); }
+  #flash { background: #fff8e8; opacity: 0; }
+  #black { background: #111114; opacity: 0; }
+  #hud { position: absolute; left: 66px; top: 850px; color: #fff; opacity: 0;
+    text-shadow: 0 2px 14px rgba(0,0,0,.45), 0 0 2px rgba(0,0,0,.35); }
+  #hud .lab { font: 600 25px 'Inter', sans-serif; letter-spacing: 5px; text-transform: uppercase; opacity: .92; }
+  #hud .num { font: 400 84px 'Caladea', 'Liberation Serif', serif; line-height: 1.02; margin-top: 2px; white-space: nowrap; }
+  #hud .sub { font: 500 18px 'Inter', sans-serif; letter-spacing: 4px; text-transform: uppercase; opacity: .75; margin-top: 8px; }
+  #cap { position: absolute; left: 60px; right: 60px; top: 1235px; text-align: center; color: #fff;
+    font: italic 400 56px 'Caladea', 'Liberation Serif', serif; line-height: 1.2; opacity: 0;
+    text-shadow: 0 2px 16px rgba(0,0,0,.55), 0 0 3px rgba(0,0,0,.4); }
+  #title { position: absolute; left: 90px; right: 90px; top: 300px; text-align: center; color: #fff;
+    font: 400 74px 'Caladea', 'Liberation Serif', serif; line-height: 1.15; opacity: 0;
+    text-shadow: 0 2px 18px rgba(0,0,0,.45); }
+  #end { position: absolute; left: 70px; right: 70px; top: 760px; text-align: center; opacity: 0; color: #f2efe8; }
+  #end .t { font: 400 70px 'Caladea', 'Liberation Serif', serif; line-height: 1.15; }
+  #end .s { font: 500 20px 'Inter', sans-serif; letter-spacing: 4px; text-transform: uppercase; opacity: .55; margin-top: 40px; line-height: 1.7; }
+</style>
+</head>
+<body>
+<div id="root">
+  <canvas id="gl" width="1080" height="1920"></canvas>
+  <div id="sunglow" class="layer"></div>
+  <div id="dust" class="layer"></div>
+  <div id="vig" class="layer"></div>
+  <div id="hud"><div class="lab"></div><div class="num"></div><div class="sub"></div></div>
+  <div id="title">¿Qué pasaría si el Sol explotara?</div>
+  <div id="cap"></div>
+  <div id="flash" class="layer"></div>
+  <div id="black" class="layer"></div>
+  <div id="end">
+    <div class="t">¿Qué pasaría si el Sol explotara?</div>
+    <div class="s">El Sol es demasiado pequeño para explotar así<br>Su luz tarda 8 minutos y 20 segundos en llegar</div>
+  </div>
+</div>
+<script src="../../engine3d/node_modules/three/build/three.min.js"></script>
+<script src="sol.js"></script>
+</body>
+</html>
