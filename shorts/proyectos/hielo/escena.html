@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; padding: 0; background: #000; overflow: hidden; }
+  #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+  #gl { position: absolute; inset: 0; width: 1080px; height: 1920px; }
+  .layer { position: absolute; inset: 0; pointer-events: none; }
+  #tint { mix-blend-mode: multiply; }
+  #uw { background: linear-gradient(#2a96a344, #06303a99); opacity: 0; }
+  #vig { background: radial-gradient(ellipse at center, rgba(0,0,0,0) 60%, rgba(0,0,0,.35) 100%); }
+  #flash { background: #eef0ff; opacity: 0; }
+  #black { background: #101014; opacity: 0; }
+  #loc { position: absolute; left: 0; right: 0; top: 300px; text-align: center; color: #fff; opacity: 0;
+    font: 400 92px 'Caladea', 'Liberation Serif', serif; letter-spacing: 8px; text-shadow: 0 3px 22px rgba(0,0,0,.55); }
+  #hud { position: absolute; left: 66px; top: 850px; color: #fff; opacity: 0;
+    text-shadow: 0 2px 14px rgba(0,0,0,.55), 0 0 2px rgba(0,0,0,.4); }
+  #hud .lab { font: 600 25px 'Inter', sans-serif; letter-spacing: 5px; text-transform: uppercase; opacity: .92; }
+  #hud .num { font: 400 84px 'Caladea', 'Liberation Serif', serif; line-height: 1.02; margin-top: 2px; white-space: nowrap; }
+  #hud .sub { font: 500 18px 'Inter', sans-serif; letter-spacing: 4px; text-transform: uppercase; opacity: .85; margin-top: 8px; }
+  #ruler { position: absolute; width: 0; border-left: 5px solid #ffd84a; opacity: 0; }
+  #ruler::before, #ruler::after { content: ''; position: absolute; left: -17px; width: 30px; height: 5px; background: #ffd84a; }
+  #ruler::before { top: 0; } #ruler::after { bottom: 0; }
+  #ruler .l { position: absolute; left: 22px; top: -14px; white-space: nowrap; color: #fff; font: 700 40px 'Inter', sans-serif;
+    background: rgba(14,18,24,.72); padding: 6px 18px; border-radius: 14px; }
+  #cap { position: absolute; left: 60px; right: 60px; top: 1235px; text-align: center; color: #fff;
+    font: italic 400 60px 'Caladea', 'Liberation Serif', serif; line-height: 1.2; opacity: 0;
+    text-shadow: 0 2px 16px rgba(0,0,0,.6), 0 0 3px rgba(0,0,0,.45); }
+  #cap b { font-weight: 700; color: #ffe08a; }
+  #cta { position: absolute; left: 0; right: 0; top: 440px; text-align: center; opacity: 0; }
+  .q { font: 400 72px 'Caladea', serif; color: #fff; text-shadow: 0 3px 18px rgba(0,0,0,.55); line-height: 1.15; }
+  .pills { display: flex; justify-content: center; gap: 30px; margin-top: 36px; }
+  .pill { font: 800 44px 'Inter', sans-serif; color: #fff; padding: 18px 38px; border-radius: 60px; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+  .pill.a { background: #2f9e5b; } .pill.b { background: #2f6fd1; }
+  #end { position: absolute; left: 60px; right: 60px; top: 690px; text-align: center; opacity: 0; color: #f2efe8; }
+  #end .c { font: 600 30px 'Inter', sans-serif; letter-spacing: 3px; margin-top: 46px; color: #ffe08a; }
+  #end .s { font: 500 19px 'Inter', sans-serif; letter-spacing: 4px; text-transform: uppercase; opacity: .55; margin-top: 60px; line-height: 1.7; }
+</style>
+</head>
+<body>
+<div id="root">
+  <canvas id="gl" width="1080" height="1920"></canvas>
+  <div id="uw" class="layer"></div>
+  <div id="tint" class="layer"></div>
+  <div id="vig" class="layer"></div>
+  <div id="loc"></div>
+  <div id="hud"><div class="lab"></div><div class="num"></div><div class="sub"></div></div>
+  <div id="ruler"><div class="l"></div></div>
+  <div id="cta"><div class="q">¿Tu ciudad se salvaría?</div>
+    <div class="pills"><div class="pill a">SE SALVA</div><div class="pill b">BAJO EL AGUA</div></div></div>
+  <div id="cap"></div>
+  <div id="flash" class="layer"></div>
+  <div id="black" class="layer"></div>
+  <div id="end">
+    <div class="q">¿Tu ciudad se salvaría?</div>
+    <div class="pills"><div class="pill a">SE SALVA</div><div class="pill b">BAJO EL AGUA</div></div>
+    <div class="c">ESCRIBE DÓNDE VIVES ↓</div>
+    <div class="s">Derretir todo el hielo del planeta tardaría miles de años<br>pero el mar ya está subiendo</div>
+  </div>
+</div>
+<script src="../../engine3d/node_modules/three/build/three.min.js"></script>
+<script src="hielo.js"></script>
+</body>
+</html>
