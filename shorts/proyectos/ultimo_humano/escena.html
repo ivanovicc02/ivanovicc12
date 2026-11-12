@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; padding: 0; background: #000; overflow: hidden; }
+  #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+  #gl { position: absolute; inset: 0; width: 1080px; height: 1920px; }
+  .layer { position: absolute; inset: 0; pointer-events: none; }
+  #vig { background: radial-gradient(ellipse at center, rgba(0,0,0,0) 60%, rgba(0,0,0,.35) 100%); }
+  #flash { background: #fff; opacity: 0; }
+  #black { background: #101014; opacity: 0; }
+  #hud { position: absolute; left: 66px; top: 300px; color: #fff; opacity: 0; text-shadow: 0 2px 14px rgba(0,0,0,.55), 0 0 2px rgba(0,0,0,.4); }
+  #hud .lab { font: 600 25px 'Inter', sans-serif; letter-spacing: 5px; text-transform: uppercase; opacity: .92; }
+  #hud .num { font: 400 96px 'Caladea', 'Liberation Serif', serif; line-height: 1.02; margin-top: 2px; white-space: nowrap; }
+  #hud .sub { font: 500 18px 'Inter', sans-serif; letter-spacing: 4px; text-transform: uppercase; opacity: .85; margin-top: 8px; }
+  #icons { position: absolute; left: 0; right: 0; top: 330px; display: flex; justify-content: center; gap: 46px; opacity: 0; }
+  #icons .ic { width: 190px; height: 190px; border-radius: 40px; background: rgba(14,18,24,.78); position: relative; display: flex; align-items: center; justify-content: center; opacity: 0; }
+  #icons .ic svg { width: 110px; height: 110px; }
+  #icons .ic.x::after { content: ''; position: absolute; left: 18px; right: 18px; top: 50%; height: 14px; margin-top: -7px; background: #ff4d4d; transform: rotate(-40deg); border-radius: 8px; box-shadow: 0 0 0 4px rgba(14,18,24,.78); }
+  #icons .ic .t { position: absolute; bottom: -46px; left: 0; right: 0; text-align: center; color: #fff; font: 700 26px 'Inter', sans-serif; letter-spacing: 2px; text-shadow: 0 2px 10px rgba(0,0,0,.6); }
+  #cap { position: absolute; left: 60px; right: 60px; top: 1260px; text-align: center; color: #fff;
+    font: italic 400 60px 'Caladea', 'Liberation Serif', serif; line-height: 1.2; opacity: 0; text-shadow: 0 2px 16px rgba(0,0,0,.65), 0 0 3px rgba(0,0,0,.5); }
+  #cap b { font-weight: 700; color: #ffe08a; }
+  #cta { position: absolute; left: 0; right: 0; top: 300px; text-align: center; opacity: 0; }
+  .q { font: 400 70px 'Caladea', serif; color: #fff; text-shadow: 0 3px 18px rgba(0,0,0,.6); line-height: 1.15; }
+  .opts { display: flex; flex-direction: column; align-items: center; gap: 18px; margin-top: 34px; }
+  .opt { font: 800 40px 'Inter', sans-serif; color: #fff; padding: 16px 40px; border-radius: 60px; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+  .o1 { background: #2f9e5b; } .o2 { background: #d0303a; } .o3 { background: #2f6fd1; }
+  #end { position: absolute; left: 60px; right: 60px; top: 640px; text-align: center; opacity: 0; color: #f2efe8; }
+  #end .c { font: 600 30px 'Inter', sans-serif; letter-spacing: 3px; margin-top: 40px; color: #ffe08a; }
+</style>
+</head>
+<body>
+<div id="root">
+  <canvas id="gl" width="1080" height="1920"></canvas>
+  <div id="vig" class="layer"></div>
+  <div id="hud"><div class="lab"></div><div class="num"></div><div class="sub"></div></div>
+  <div id="icons">
+    <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M2 8.5a15 15 0 0 1 20 0M5 12a10 10 0 0 1 14 0M8.5 15.5a5 5 0 0 1 7 0"/><circle cx="12" cy="19" r="1.2" fill="#fff"/></svg><div class="t">INTERNET</div></div>
+    <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M6 9h12M9 5v2M9 12v3"/></svg><div class="t">REFRI</div></div>
+    <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"><path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/></svg><div class="t">AGUA</div></div>
+  </div>
+  <div id="cta"><div class="q">¿Qué harías PRIMERO?</div>
+    <div class="opts"><div class="opt o1">🛒 Llevarme todo de la tienda</div><div class="opt o2">🏎️ Manejar un deportivo</div><div class="opt o3">🔎 Buscar a alguien más</div></div></div>
+  <div id="cap"></div>
+  <div id="flash" class="layer"></div>
+  <div id="black" class="layer"></div>
+  <div id="end">
+    <div class="q">¿Qué harías PRIMERO<br>si fueras el último humano?</div>
+    <div class="c">TE LEO EN LOS COMENTARIOS ↓</div>
+  </div>
+</div>
+<script src="../../engine3d/node_modules/three/build/three.min.js"></script>
+<script src="../../engine3d/personaje.js"></script>
+<script src="ultimo.js"></script>
+</body>
+</html>
